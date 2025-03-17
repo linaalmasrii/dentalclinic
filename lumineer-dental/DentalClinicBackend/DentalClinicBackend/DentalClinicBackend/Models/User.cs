@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using DentalClinicBackend.Models;
 
 namespace DentalClinicBackend.Models
 {
@@ -49,5 +50,7 @@ namespace DentalClinicBackend.Models
 
         // Relationship: User can have multiple Appointments
         public List<Appointment> Appointments { get; set; } = new(); // Ensures no null reference
+
+        public string Role { get; set; } = UserRoles.Patient; // Default role
     }
 }

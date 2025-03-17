@@ -14,16 +14,16 @@ namespace DentalClinicBackend.Models
         public int Id { get; set; }
 
         [Required, MaxLength(100)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required, MaxLength(100)]
-        public string Specialty { get; set; }
+        public string Specialty { get; set; } = string.Empty;
 
         [Required, MaxLength(255)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required, MaxLength(20)]
-        public string PhoneNumber { get; set; }
+        public string PhoneNumber { get; set; } = string.Empty;
 
         // ✅ Define a Value Converter for List<string>
         private static readonly ValueConverter<List<string>, string> _converter =
@@ -35,7 +35,7 @@ namespace DentalClinicBackend.Models
         // ✅ Define a Value Comparer for List<string>
         private static readonly ValueComparer<List<string>> _comparer =
             new ValueComparer<List<string>>(
-                (c1, c2) => c1.SequenceEqual(c2),  // Compare lists element-wise
+                (c1, c2) => (c1 ?? new List<string>()).SequenceEqual(c2 ?? new List<string>()),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),  // Hashing logic
                 c => c.ToList()
             );
@@ -43,6 +43,9 @@ namespace DentalClinicBackend.Models
         // ✅ Apply Value Converter & Comparer to AvailableTimeSlots
         [Required]
         public List<string> AvailableTimeSlots { get; set; } = new();
+
+        // Add this property
+        public List<Appointment> Appointments { get; set; } = new();
 
         public static void Configure(ModelBuilder modelBuilder)
         {

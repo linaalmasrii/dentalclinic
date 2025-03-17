@@ -1,17 +1,35 @@
-import React, { useState } from 'react';
-import { Box, Typography, Button, Link, Paper } from '@mui/material';
-import Grid from "@mui/material/Grid";
-
-import { Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, Link, Paper, Grid, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Rating } from '@mui/material';
 import { Link as ScrollLink } from 'react-scroll';
 import { Link as RouterLink } from 'react-router-dom';
-
 
 const HomePage = () => {
   // State for the review dialog
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState('');
   const [name, setName] = useState('');
+  
+  // Add this new state for reviews
+  const [reviews, setReviews] = useState([
+    {
+      name: "Sarah Johnson",
+      rating: 5,
+      text: "Outstanding dental care! The staff is incredibly professional and caring. I've never felt more comfortable at a dentist's office.",
+      date: "2024-03-15"
+    },
+    {
+      name: "Michael Brown",
+      rating: 5,
+      text: "Excellent service and very modern facilities. The doctors take time to explain everything thoroughly.",
+      date: "2024-03-10"
+    },
+    {
+      name: "Emma Wilson",
+      rating: 4,
+      text: "Very pleasant experience. The clinic is clean and well-maintained. The staff is friendly and professional.",
+      date: "2024-03-05"
+    }
+  ]);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -264,7 +282,7 @@ const HomePage = () => {
                 variant="h5"
                 sx={{ margin: '20px 0' }}
               >
-                We’re dedicated to fostering lasting relationships through exceptional care, including:
+                We're dedicated to fostering lasting relationships through exceptional care, including:
               </Typography>
               <Typography variant="h6">✔ Transparent Pricing</Typography>
               <Typography variant="h6">✔ Unparalleled Warranty</Typography>
@@ -346,7 +364,7 @@ const HomePage = () => {
             <img src="src/assets/COSMETICDENTISTRY.jpg" alt="Cosmetic Dentistry" style={{ width: '100%', borderRadius: '8px' }} />
             <Typography variant="h6" sx={{ marginTop: '15px', fontWeight: 'bold' }}>Cosmetic Dentistry</Typography>
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
-              Discover your “wow!” factor. Invisalign, veneers, and in-office or take-home teeth whitening.
+              Discover your "wow!" factor. Invisalign, veneers, and in-office or take-home teeth whitening.
             </Typography>
             <Link href="#cosmetic" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
               ABOUT COSMETIC DENTISTRY
@@ -447,7 +465,7 @@ const HomePage = () => {
             No Hidden Costs
           </Typography>
           <Typography variant="body1" sx={{ marginTop: '15px', color: '#666' }}>
-            We believe in clear and accessible dental care. Enjoy upfront pricing and honest estimates, along with our reliable warranty. Stay up to date with regular 6-month checkups, and if any issue arises, we’ll fix it at no additional cost.
+            We believe in clear and accessible dental care. Enjoy upfront pricing and honest estimates, along with our reliable warranty. Stay up to date with regular 6-month checkups, and if any issue arises, we'll fix it at no additional cost.
           </Typography>
         </Box>
 
@@ -538,7 +556,7 @@ const HomePage = () => {
             textShadow: '1px 1px 3px rgba(0, 0, 0, 0.5)',
           }}
         >
-          We’re conveniently located in francesic utca 12 Center area. Find us on the ground floor of the building. Plenty of free parking available.
+          We're conveniently located in francesic utca 12 Center area. Find us on the ground floor of the building. Plenty of free parking available.
         </Typography>
 
         <Typography
@@ -592,7 +610,78 @@ const HomePage = () => {
           ></iframe>
         </Box>
       </Box>
-
+{/* review  Section */}
+<Box id="review" sx={{ padding: '50px 20px', backgroundColor: '#FAF3E0' }}>
+  <Typography
+    variant="h3"
+    sx={{
+      textAlign: 'center',
+      color: '#5E2C04',
+      marginBottom: '40px',
+      fontFamily: "'Playfair Display', serif",
+    }}
+  >
+    Patient Reviews
+  </Typography>
+  
+  <Box
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '20px',
+      padding: '20px',
+      maxWidth: '1200px',
+      margin: '0 auto',
+    }}
+  >
+    {reviews.map((review, index) => (
+      <Paper
+        key={index}
+        elevation={3}
+        sx={{
+          padding: '20px',
+          backgroundColor: 'white',
+          borderRadius: '10px',
+          transition: 'transform 0.2s',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '50%',
+              backgroundColor: '#8B4513',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              marginRight: '10px',
+              fontSize: '1.2rem',
+            }}
+          >
+            {review.name[0]}
+          </Box>
+          <Typography variant="h6">{review.name}</Typography>
+        </Box>
+        <Rating 
+          value={review.rating} 
+          readOnly 
+          sx={{ marginBottom: '10px' }}
+        />
+        <Typography variant="body1" sx={{ marginBottom: '10px' }}>
+          {review.text}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'gray' }}>
+          {new Date(review.date).toLocaleDateString()}
+        </Typography>
+      </Paper>
+    ))}
+  </Box>
+</Box>
       {/* Logo Section */}
       <Box sx={{ marginTop: '-80px', display: 'flex', justifyContent: 'center' }}>
         <img src="src/assets/newicon.ico" alt="Lumineer Dental Clinic Logo" style={{ height: '500px', width: 'auto' }} />
