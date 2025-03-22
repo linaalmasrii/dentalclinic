@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress, Paper, Grid } from "@mui/material";
+import { getPatientHistory } from "../api";
 
 const PatientHistory = () => {
   const [patientData, setPatientData] = useState(null);
@@ -14,15 +15,10 @@ const PatientHistory = () => {
       }
 
       try {
-        const res = await fetch(`http://localhost:5133/api/patient-history/${user.email}`);
-        const data = await res.json();
-        if (res.ok) {
-          setPatientData(data);
-        } else {
-          alert(data.message || "Failed to fetch patient history");
-        }
+        const data = await getPatientHistory(user.email);
+        setPatientData(data);
       } catch (error) {
-        console.error("Error fetching patient history:", error);
+        alert(error.message || "Failed to fetch patient history");
       } finally {
         setLoading(false);
       }

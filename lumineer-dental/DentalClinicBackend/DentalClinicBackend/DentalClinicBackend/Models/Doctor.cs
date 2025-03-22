@@ -25,14 +25,14 @@ namespace DentalClinicBackend.Models
         [Required, MaxLength(20)]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        // ✅ Define a Value Converter for List<string>
+        // Define a Value Converter for List<string>
         private static readonly ValueConverter<List<string>, string> _converter =
             new ValueConverter<List<string>, string>(
                 v => string.Join(',', v),  // Convert List to a single string
                 v => v.Split(',', System.StringSplitOptions.None).ToList() // Convert string back to List
             );
 
-        // ✅ Define a Value Comparer for List<string>
+        // Define a Value Comparer for List<string>
         private static readonly ValueComparer<List<string>> _comparer =
             new ValueComparer<List<string>>(
                 (c1, c2) => (c1 ?? new List<string>()).SequenceEqual(c2 ?? new List<string>()),

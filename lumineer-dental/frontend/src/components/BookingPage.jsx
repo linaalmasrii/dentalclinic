@@ -5,6 +5,7 @@ import { styled } from '@mui/system';
 import DatePicker from 'react-datepicker'; 
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import { createAppointment } from '../api'; // Import the API function
 
 
 const Header = styled(Box)(({ theme }) => ({
@@ -201,8 +202,19 @@ const BookingPage = () => {
     }
   };
 
-  const handleConfirmAppointment = () => {
-    alert(`Appointment confirmed for ${selectedService} with ${selectedDoctor?.name} on ${selectedDate?.toLocaleDateString()} at ${selectedTime}`);
+  const handleConfirmAppointment = async () => {
+    try {
+        const appointmentData = {
+            service: selectedService,
+            doctor: selectedDoctor.name,
+            date: selectedDate,
+            time: selectedTime,
+        };
+        await createAppointment(appointmentData);
+        alert("Appointment confirmed!");
+    } catch (error) {
+        alert(error.message || "Failed to confirm appointment");
+    }
   };
 
   // Keep your existing step2 and step3 exactly the same ...

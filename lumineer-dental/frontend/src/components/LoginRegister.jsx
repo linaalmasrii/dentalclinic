@@ -4,6 +4,8 @@ import {
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
+import { login, register, registerUser, loginUser } from "../api";
+
 
 
 // Header Style
@@ -82,71 +84,40 @@ const LoginRegister = () => {
   });
 
   // Handle Form Submission
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setLoading(true);
     try {
       if (step === "login") {
-        const res = await fetch("http://localhost:5133/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(loginData),
-        });
-  
-        const result = await res.json();
-        if (res.ok) {
-          localStorage.setItem("user", JSON.stringify(result.user));
-          alert("Login Successful!");
-          navigate("/loginS");
-        } else {
-          alert(result.message || "Invalid credentials!");
-        }
-      } 
-      
-      else if (step === "register") {
+        const result = await loginUser(loginData);
+        alert("Login successful! Token: " + result.token);
+        localStorage.setItem("user", JSON.stringify(result));
+        navigate('/login-success');
+      } else if (step === "register") {
         setStep("medicalInfo"); // Move to Medical Info Step
-      } 
-      
-      else if (step === "medicalInfo") {
-        // Ensure correct data formatting
+      } else if (step === "medicalInfo") {
         const formattedUserData = {
           ...registerData,
           gender: registerData.gender || "Not Specified",
-          dateOfBirth: registerData.dob ? new Date(registerData.dob).toISOString() : null, // Convert to valid format
-  
+          dateOfBirth: registerData.dob ? new Date(registerData.dob).toISOString() : null,
           hasAllergies: medicalInfo.hasAllergies === "yes",
           allergies: medicalInfo.hasAllergies === "yes" ? medicalInfo.allergies : null,
-  
           takingMedications: medicalInfo.takingMedications === "yes",
           medications: medicalInfo.takingMedications === "yes" ? medicalInfo.medications : null,
-  
           hasDentalHistory: medicalInfo.hasDentalHistory === "yes",
           dentalHistory: medicalInfo.hasDentalHistory === "yes" ? medicalInfo.dentalHistory : null,
-  
           hasSurgeries: medicalInfo.hasSurgeries === "yes",
           surgeries: medicalInfo.hasSurgeries === "yes" ? medicalInfo.surgeries : null,
-  
           hasAdditionalConcerns: medicalInfo.hasAdditionalConcerns === "yes",
           additionalConcerns: medicalInfo.hasAdditionalConcerns === "yes" ? medicalInfo.additionalConcerns : null,
         };
   
-        // Send Data to Backend
-        const res = await fetch("http://localhost:5133/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formattedUserData),
-        });
-  
-        const result = await res.json();
-        if (res.ok) {
-          alert("Registration Complete! Please log in.");
-          setStep("login");
-        } else {
-          alert(result.message || "Failed to save medical info!");
-        }
+        const result = await registerUser(formattedUserData);
+        alert(result.message);
+        setStep("login");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("Something went wrong. Try again.");
+      alert(error.message || "An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

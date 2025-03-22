@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './components/HomePage';
 import LoginRegister from './components/LoginRegister';
 import LoginS from './components/LoginS'; 
@@ -10,7 +10,7 @@ import ProfilePage from './components/ProfilePage';
 
 const App = () => {
     return (
-      <BrowserRouter>
+      <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/homepage" replace />} />
           <Route path="/homepage" element={<HomePage />} />
@@ -20,7 +20,7 @@ const App = () => {
           <Route path="/profile-info" element={<ProfilePage />} />
           <Route path="/patient-history" element={<PatientHistory />} />
         </Routes>
-      </BrowserRouter>
+      </Router>
     );
 }
 
