@@ -63,7 +63,7 @@ namespace DentalClinicBackend.Controllers
             return Ok(new { message = "User registered successfully!" });
         }
 
-        // ✅ LOGIN Endpoint (Returns JWT Token)
+        // LOGIN Endpoint (Returns JWT Token)
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto request)
         {
@@ -90,7 +90,7 @@ namespace DentalClinicBackend.Controllers
             });
         }
 
-        // ✅ GENERATE JWT Token
+        // GENERATE JWT Token
         private string GenerateJwtToken(User user)
         {
             var claims = new[]
@@ -116,7 +116,7 @@ namespace DentalClinicBackend.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        // ✅ PASSWORD HASHING
+        // PASSWORD HASHING
         private string HashPassword(string password)
         {
             using (var sha256 = System.Security.Cryptography.SHA256.Create())
@@ -126,7 +126,7 @@ namespace DentalClinicBackend.Controllers
             }
         }
 
-        // ✅ PASSWORD VERIFICATION
+        // PASSWORD VERIFICATION
         private bool VerifyPassword(string enteredPassword, string storedHash)
         {
             return HashPassword(enteredPassword) == storedHash;
