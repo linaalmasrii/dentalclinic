@@ -59,6 +59,20 @@ const ProfilePage = () => {
     fetchUserData();
   }, [navigate]);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') {
+        navigate('/'); // Go back to home or previous page
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [navigate]);
+
   const TextFieldStyle = {
     backgroundColor: 'white',
     borderRadius: '8px',

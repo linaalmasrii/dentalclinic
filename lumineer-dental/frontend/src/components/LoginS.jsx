@@ -53,7 +53,7 @@ const LoginS = () => {
 
   // Simulating fetching user data from the database
   useEffect(() => {
-    // Assume this is fetched from your backend (Replace with API call)
+    
     const fetchedUser = {
       firstName: "John",
       lastName: "Doe",
@@ -94,7 +94,7 @@ const LoginS = () => {
     navigate("/login-register"); // Redirect to login page
   };
 
-  
+
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -262,8 +262,8 @@ const LoginS = () => {
         <Grid container spacing={4} alignItems="center">
           {/* Text Content */}
           <Grid item xs={6} md={6} sx={{ display: 'flex', justifyContent: 'center' }}>
-            <Box
-              sx={{
+<Box
+  sx={{
                 backgroundColor: '#FAF3E0',
                 padding: '40px',
                 borderRadius: '8px',
@@ -622,64 +622,64 @@ const LoginS = () => {
       <Box id="review" sx={{ padding: '50px 20px', backgroundColor: '#FAF3E0' }}>
         {userData && (
           <Box sx={{ marginBottom: '50px' }}>
-            <Typography
-              variant="h4"
-              sx={{
-                textAlign: 'center',
-                color: '#5E2C04',
-                marginBottom: '30px',
-                fontFamily: "'Playfair Display', serif",
-              }}
-            >
+  <Typography
+    variant="h4"
+    sx={{
+      textAlign: 'center',
+      color: '#5E2C04',
+      marginBottom: '30px',
+      fontFamily: "'Playfair Display', serif",
+    }}
+  >
               Share Your Experience
-            </Typography>
-            <Box
-              sx={{
-                maxWidth: '600px',
+  </Typography>
+    <Box
+      sx={{
+        maxWidth: '600px',
                 margin: '0 auto',
-                padding: '20px',
+        padding: '20px',
                 backgroundColor: 'white',
-                borderRadius: '10px',
-                boxShadow: '0 4px 20px rgba(255, 215, 0, 0.6), 0 2px 10px rgba(139, 69, 19, 0.3)',
-              }}
-            >
+        borderRadius: '10px',
+        boxShadow: '0 4px 20px rgba(255, 215, 0, 0.6), 0 2px 10px rgba(139, 69, 19, 0.3)',
+      }}
+    >
               <Rating
                 value={rating}
                 onChange={(event, newValue) => {
                   setRating(newValue);
                 }}
-                sx={{ 
+              sx={{
                   fontSize: '2rem',
                   color: '#FFD700',
                   marginBottom: '20px'
                 }}
               />
-              <TextField
-                fullWidth
-                multiline
-                rows={4}
-                variant="outlined"
+      <TextField
+        fullWidth
+        multiline
+        rows={4}
+        variant="outlined"
                 placeholder="Tell us about your experience..."
                 value={reviewText}
                 onChange={(e) => setReviewText(e.target.value)}
-                sx={{ marginBottom: '20px' }}
-              />
-              <Button
-                variant="contained"
+        sx={{ marginBottom: '20px' }}
+      />
+      <Button
+        variant="contained"
                 onClick={handleSubmitReview}
-                sx={{
-                  backgroundColor: '#8B4513',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: '#A0522D',
-                  },
-                }}
-              >
-                Submit Review
-              </Button>
+        sx={{
+          backgroundColor: '#8B4513',
+          color: 'white',
+          '&:hover': {
+            backgroundColor: '#A0522D',
+          },
+        }}
+      >
+        Submit Review
+      </Button>
             </Box>
-          </Box>
-        )}
+    </Box>
+  )}
 
         <Typography
           variant="h4"
@@ -692,32 +692,32 @@ const LoginS = () => {
         >
           Patient Reviews
         </Typography>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '20px',
-            padding: '20px',
+  <Box
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: '20px',
+      padding: '20px',
             maxWidth: '1200px',
             margin: '0 auto',
-          }}
-        >
-          {reviews.map((review, index) => (
-            <Card
-              key={index}
-              sx={{
-                padding: '20px',
+    }}
+  >
+    {reviews.map((review, index) => (
+      <Card
+        key={index}
+        sx={{
+          padding: '20px',
                 backgroundColor: 'white',
-                boxShadow: '0 4px 20px rgba(255, 215, 0, 0.3)',
-                borderRadius: '10px',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                <Avatar sx={{ marginRight: '10px', backgroundColor: '#8B4513' }}>
+          boxShadow: '0 4px 20px rgba(255, 215, 0, 0.3)',
+          borderRadius: '10px',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+          <Avatar sx={{ marginRight: '10px', backgroundColor: '#8B4513' }}>
                   {review.userName[0]}
-                </Avatar>
+          </Avatar>
                 <Typography variant="h6">{review.userName}</Typography>
-              </Box>
+        </Box>
               <Rating value={review.rating} readOnly sx={{ color: '#FFD700', marginBottom: '10px' }} />
               <Typography variant="body1" sx={{ marginBottom: '10px' }}>
                 {review.text}
@@ -728,12 +728,12 @@ const LoginS = () => {
             </Card>
           ))}
         </Box>
-      </Box>
+  </Box>
 
       {/* Logo Section */}
       <Box sx={{ marginTop: '-80px', display: 'flex', justifyContent: 'center' }}>
         <img src="src/assets/newicon.ico" alt="Lumineer Dental Clinic Logo" style={{ height: '500px', width: 'auto' }} />
-      </Box>
+</Box>
     </Box>
 
   );

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Container, TextField, Button, Typography, Box, Card, CardContent, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio
 } from "@mui/material";
@@ -92,7 +92,7 @@ const LoginRegister = () => {
         const result = await loginUser(loginData);
         alert("Login successful! Token: " + result.token);
         localStorage.setItem("user", JSON.stringify(result));
-        navigate('/login-success');
+        navigate('/LoginS');
       } else if (step === "register") {
         setStep("medicalInfo"); // Move to Medical Info Step
       } else if (step === "medicalInfo") {
@@ -123,6 +123,23 @@ const LoginRegister = () => {
     }
   };
   
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') {
+        navigate(-1); // Go back one step in history
+      }
+      if (event.key === 'Enter') {
+        handleSubmit(event); // Submit the form on Enter key
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [navigate]);
+
   return (
     <BackgroundContainer>
       <Header>

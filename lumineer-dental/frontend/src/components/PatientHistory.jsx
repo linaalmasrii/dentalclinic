@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress, Paper, Grid } from "@mui/material";
 import { getPatientHistory } from "../api";
+import { useNavigate } from "react-router-dom";
 
 const PatientHistory = () => {
   const [patientData, setPatientData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPatientHistory = async () => {
@@ -16,7 +18,7 @@ const PatientHistory = () => {
 
       try {
         const data = await getPatientHistory(user.email);
-        setPatientData(data);
+          setPatientData(data);
       } catch (error) {
         alert(error.message || "Failed to fetch patient history");
       } finally {
@@ -26,6 +28,20 @@ const PatientHistory = () => {
 
     fetchPatientHistory();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') {
+        navigate(-1); // Go back one step in history
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [navigate]);
 
   return (
     <Box sx={{ 
@@ -142,7 +158,7 @@ const PatientHistory = () => {
                   <strong>Additional Concerns:</strong> {patientData.additionalConcerns || "None"}
                 </Typography>
               </Box>
-            </Paper>
+        </Paper>
           </Grid>
         </Grid>
       ) : (

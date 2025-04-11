@@ -150,6 +150,23 @@ const BookingPage = () => {
   const [selectedTime, setSelectedTime] = useState('');
   const [error, setError] = useState(false);
 
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'ArrowLeft') {
+        handleBack(); // Go back one step in history
+      }
+      if (event.key === 'Enter') {
+        handleNext(); // Proceed to the next step on Enter key
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const handleNext = () => {
     if (step === 1) {
       if (!selectedService) {

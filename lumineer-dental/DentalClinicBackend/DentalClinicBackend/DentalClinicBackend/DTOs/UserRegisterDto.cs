@@ -17,7 +17,7 @@ namespace DentalClinicBackend.DTOs
         public string Password { get; set; } = string.Empty;
 
         [Required, MaxLength(20)]
-        public string PhoneNumber { get; set; } = string.Empty;
+        public string Phone { get; set; } = string.Empty;
 
         public DateTime? DateOfBirth { get; set; } // Removed `private set;`
 

@@ -38,7 +38,7 @@ namespace DentalClinicBackend.Controllers
         FirstName = request.FirstName,
         LastName = request.LastName,
         Email = request.Email,
-        PhoneNumber = request.PhoneNumber,
+        PhoneNumber = request.Phone,
         Gender = request.Gender,
         DateOfBirth = request.DateOfBirth,
         PasswordHash = HashPassword(request.Password),
