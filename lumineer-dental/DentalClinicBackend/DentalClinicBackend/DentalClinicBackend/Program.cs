@@ -67,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Add Controllers with JSON options
+// Controllers with JSON options
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -81,6 +81,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IEmailService, EmailService>(); 
 
 // Add Health Checks
 builder.Services.AddHealthChecks();

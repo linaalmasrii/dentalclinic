@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress, Paper, Grid } from "@mui/material";
-import { getPatientHistory } from "../api";
+import { getPatientHistory, getAppointmentHistory } from "../api";
 import { useNavigate } from "react-router-dom";
 
 const PatientHistory = () => {
   const [patientData, setPatientData] = useState(null);
+  const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchPatientHistory = async () => {
+    const fetchData = async () => {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user) {
         alert("No user logged in");
@@ -17,16 +18,21 @@ const PatientHistory = () => {
       }
 
       try {
-        const data = await getPatientHistory(user.email);
-          setPatientData(data);
+        const [patientData, appointmentsData] = await Promise.all([
+          getPatientHistory(user.email),
+          getAppointmentHistory(user.user.Id)
+        ]);
+        
+        setPatientData(patientData);
+        setAppointments(appointmentsData);
       } catch (error) {
-        alert(error.message || "Failed to fetch patient history");
+        alert(error.message || "Failed to fetch data");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPatientHistory();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -42,6 +48,15 @@ const PatientHistory = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [navigate]);
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'scheduled': return '#8B4513';
+      case 'completed': return '#4CAF50';
+      case 'cancelled': return '#f44336';
+      default: return '#757575';
+    }
+  };
 
   return (
     <Box sx={{ 
@@ -158,6 +173,70 @@ const PatientHistory = () => {
                   <strong>Additional Concerns:</strong> {patientData.additionalConcerns || "None"}
                 </Typography>
               </Box>
+            </Paper>
+          </Grid>
+
+          {/* Appointment History */}
+          <Grid item xs={12}>
+            <Paper sx={{
+              padding: '30px',
+              borderRadius: '12px',
+              boxShadow: '5px 5px 15px rgba(94, 44, 4, 0.2)',
+              backgroundColor: 'white',
+            }}>
+              <Typography variant="h5" sx={{ 
+                color: '#5E2C04',
+                marginBottom: '20px',
+                fontFamily: "'Playfair Display', serif",
+              }}>
+                Appointment History
+              </Typography>
+              
+              {appointments.length > 0 ? (
+                <Box sx={{ display: 'grid', gap: '15px' }}>
+                  {appointments.map((appointment, index) => (
+                    <Paper key={index} sx={{
+                      padding: '15px',
+                      borderRadius: '8px',
+                      backgroundColor: 'rgba(139, 69, 19, 0.05)',
+                    }}>
+                      <Grid container spacing={2} alignItems="center">
+                        <Grid item xs={12} md={3}>
+                          <Typography variant="body1">
+                            <strong>Service:</strong> {appointment.service}
+                          </Typography>
+                          <Typography variant="body1">
+                            <strong>Doctor:</strong> Dr. {appointment.doctorName}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <Typography variant="body1">
+                            <strong>Date:</strong> {new Date(appointment.appointmentDate).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="body1">
+                            <strong>Time:</strong> {appointment.appointmentTime}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <Box sx={{
+                            padding: '5px 10px',
+                            borderRadius: '15px',
+                            display: 'inline-block',
+                            backgroundColor: getStatusColor(appointment.status),
+                            color: 'white'
+                          }}>
+                            {appointment.status}
+                          </Box>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ))}
+                </Box>
+              ) : (
+                <Typography variant="body1">
+                  No appointment history found.
+                </Typography>
+              )}
         </Paper>
           </Grid>
         </Grid>

@@ -5,7 +5,9 @@ import { styled } from '@mui/system';
 import DatePicker from 'react-datepicker'; 
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { createAppointment } from '../api'; // Import the API function
+import { createAppointment } from '../api';
+import { useNavigate } from 'react-router-dom';
+
 
 
 const Header = styled(Box)(({ theme }) => ({
@@ -137,7 +139,21 @@ const StyledCalendarContainer = styled('div')({
     color: '#757575'
   }
 });
+const getServiceId = (serviceName) => {
+  const serviceMap = {
+    "Botox": 1,
+    "Dental Implant Consult": 2,
+    "Teeth Whitening": 3,
+    "Cleaning": 4,
+    "Orthodontic Consult": 5,
+    "Kids Cleaning": 6,
+    "Fluoride Treatment": 7,
+    "Pediatric Dental Exam": 8,
+    "Sealants": 9
+  };
 
+  return serviceMap[serviceName] || null; // fallback to null if not found
+};
 
 
 
@@ -149,6 +165,8 @@ const BookingPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [error, setError] = useState(false);
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -221,16 +239,38 @@ const BookingPage = () => {
 
   const handleConfirmAppointment = async () => {
     try {
+        if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService) {
+            alert("Please select all required fields");
+            return;
+        }
+
+        setLoading(true); // Add loading state
+        
         const appointmentData = {
+            doctorId: selectedDoctor.id, // Make sure your doctor objects have IDs
+            serviceId: getServiceId(selectedService), // Add a function to map service names to IDs
+            appointmentDate: selectedDate,
+            appointmentTime: selectedTime,
             service: selectedService,
-            doctor: selectedDoctor.name,
-            date: selectedDate,
-            time: selectedTime,
+            doctorName: selectedDoctor.name
         };
-        await createAppointment(appointmentData);
-        alert("Appointment confirmed!");
+
+        console.log('Submitting appointment:', appointmentData);
+        
+        const response = await createAppointment(appointmentData);
+        
+        if (response.message) {
+            // Show success dialog
+            setSuccessDialogOpen(true);
+            setTimeout(() => {
+                navigate('/appointment-history');
+            }, 3000);
+        }
     } catch (error) {
-        alert(error.message || "Failed to confirm appointment");
+        console.error('Booking error:', error);
+        alert(error.message || "Failed to book appointment");
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -539,6 +579,43 @@ const BookingPage = () => {
     </Card>
   );
 
+  const SuccessDialog = () => (
+    <Dialog
+        open={successDialogOpen}
+        onClose={() => setSuccessDialogOpen(false)}
+    >
+        <DialogTitle sx={{ color: '#8B4513' }}>
+            Appointment Scheduled Successfully!
+        </DialogTitle>
+        <DialogContent>
+            <Typography>
+                Your appointment has been booked successfully. A confirmation email will be sent shortly with the details.
+            </Typography>
+            <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle1">Appointment Details:</Typography>
+                <Typography>Service: {selectedService}</Typography>
+                <Typography>Doctor: {selectedDoctor?.name}</Typography>
+                <Typography>Date: {selectedDate?.toLocaleDateString()}</Typography>
+                <Typography>Time: {selectedTime}</Typography>
+            </Box>
+        </DialogContent>
+        <DialogActions>
+            <Button 
+                onClick={() => navigate('/PatienHistory')}
+                sx={{ 
+                    backgroundColor: '#8B4513',
+                    color: 'white',
+                    '&:hover': {
+                        backgroundColor: '#A0522D'
+                    }
+                }}
+            >
+                View My Appointments
+            </Button>
+        </DialogActions>
+    </Dialog>
+  );
+
   return (
     <BackgroundContainer>
       <Header>
@@ -560,6 +637,7 @@ const BookingPage = () => {
       {step === 1 && step2}
       {step === 2 && step3}
       {step === 3 && step4}
+      <SuccessDialog />
     </BackgroundContainer>
   );
 };

@@ -47,7 +47,22 @@ const ProfilePage = () => {
       }
 
       try {
-      setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        console.log('Parsed user data:', parsedUser); // Debug log
+
+        // Map the user data correctly from the registration data structure
+        setUser({
+          firstName: parsedUser.user.FirstName,
+          lastName: parsedUser.user.LastName,
+          email: parsedUser.user.Email,
+          phoneNumber: parsedUser.user.Phone || 'Not specified',
+          gender: parsedUser.user.Gender || 'Not specified',
+          dateOfBirth: parsedUser.user.DateOfBirth ? new Date(parsedUser.user.DateOfBirth).toLocaleDateString() : 'Not specified',
+          allergies: parsedUser.user.Allergies || 'None',
+          medications: parsedUser.user.Medications || 'None',
+          dentalHistory: parsedUser.user.DentalHistory || 'No records',
+          surgeries: parsedUser.user.Surgeries || 'None'
+        });
       } catch (error) {
         console.error("Error loading user data:", error);
         alert("Error loading profile information");

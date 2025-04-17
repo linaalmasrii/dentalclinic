@@ -10,10 +10,12 @@ namespace DentalClinicBackend.Controllers
     public class AppointmentController : ControllerBase
     {
         private readonly IAppointmentService _appointmentService;
+        private readonly IEmailService _emailService; // Add this line
 
-        public AppointmentController(IAppointmentService appointmentService)
+        public AppointmentController(IAppointmentService appointmentService, IEmailService emailService) // Update constructor
         {
             _appointmentService = appointmentService;
+            _emailService = emailService;
         }
 
         [HttpPost]
@@ -22,8 +24,72 @@ namespace DentalClinicBackend.Controllers
         {
             try
             {
+                Console.WriteLine($"Received appointment request: UserId={appointmentDto.UserId}, DoctorId={appointmentDto.DoctorId}, Date={appointmentDto.AppointmentDate}, Time={appointmentDto.TimeSlot}");
+
+                var existingAppointment = await _appointmentService.GetAppointmentByDoctorAndTimeAsync(
+                    appointmentDto.DoctorId,
+                    appointmentDto.AppointmentDate,
+                    appointmentDto.TimeSlot
+                );
+
+                if (existingAppointment != null)
+                {
+                    return BadRequest("This time slot is already booked. Please select another time.");
+                }
+
                 var result = await _appointmentService.CreateAppointmentAsync(appointmentDto);
-                return Ok(result);
+
+                await _emailService.SendAppointmentConfirmationEmailAsync(
+                    appointmentDto.UserId,
+                    result.AppointmentDate,
+                    result.TimeSlot,
+                    result.ServiceType
+                );
+
+                return Ok(new { 
+                    message = "Appointment has been scheduled successfully. A confirmation email will be sent shortly.",
+                    appointment = result 
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating appointment: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("history/{userId}")]
+        [Authorize]
+        public async Task<ActionResult<List<AppointmentDto>>> GetAppointmentHistory(string userId)
+        {
+            try
+            {
+                var appointments = await _appointmentService.GetUserAppointmentsAsync(int.Parse(userId));
+                
+                // Sort appointments by date
+                appointments = appointments.OrderByDescending(a => a.AppointmentDate)
+                                        .ThenBy(a => a.TimeSlot)
+                                        .ToList();
+                
+                return Ok(appointments);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching appointment history: {ex.Message}");
+                return BadRequest("Failed to fetch appointment history");
+            }
+        }
+
+        [HttpGet("available-slots")]
+        public async Task<ActionResult<List<string>>> GetAvailableTimeSlots(
+            [FromQuery] int doctorId,
+            [FromQuery] DateTime date)
+        {
+            try
+            {
+                var availableSlots = await _appointmentService.GetAvailableTimeSlotsAsync(doctorId, date);
+                return Ok(availableSlots);
             }
             catch (Exception ex)
             {

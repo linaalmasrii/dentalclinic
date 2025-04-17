@@ -53,18 +53,36 @@ const LoginS = () => {
 
   // Simulating fetching user data from the database
   useEffect(() => {
-    
-    const fetchedUser = {
-      firstName: "John",
-      lastName: "Doe",
-      email: "johndoe@example.com",
-      dob: "1995-08-12",
-      gender: "Male",
-      profilePic: "https://via.placeholder.com/50" // Default profile pic
-    };
-    setUserData(fetchedUser);
+    const fetchUserData = async () => {
+      try {
+        const storedUser = localStorage.getItem('user');
+        console.log('Raw stored user:', storedUser); // Debug log
 
-    // Add some initial reviews
+        if (!storedUser) {
+          console.log('No user data found in localStorage');
+          navigate('/login-register');
+          return;
+        }
+
+        const parsedUser = JSON.parse(storedUser);
+        console.log('Parsed user data:', parsedUser); // Debug log
+
+        setUserData({
+          firstName: parsedUser.user.FirstName || 'Guest',
+          lastName: parsedUser.user.LastName,
+          email: parsedUser.user.Email,
+          // Remove the placeholder image
+        });
+
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        navigate('/login-register');
+      }
+    };
+
+    fetchUserData();
+
+    // Keep the reviews part as is
     setReviews([
       {
         userName: "Sarah Smith",
@@ -79,7 +97,7 @@ const LoginS = () => {
         date: new Date().toISOString()
       }
     ]);
-  }, []);
+  }, [navigate]);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -90,8 +108,10 @@ const LoginS = () => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('user'); // Clear user data
+    localStorage.removeItem('token'); // Clear token
     setUserData(null);
-    navigate("/login-register"); // Redirect to login page
+    navigate("/login-register");
   };
 
 
@@ -145,12 +165,17 @@ const LoginS = () => {
           {/* Profile Section */}
           {userData ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              {/* Profile Picture */}
+              {/* Use first letter of name for Avatar */}
               <Avatar
-                src={userData.profilePic}
-                alt="Profile"
-                sx={{ width: 45, height: 45, cursor: "pointer" }}
-              />
+                sx={{ 
+                  width: 45, 
+                  height: 45, 
+                  bgcolor: '#8B4513',
+                  cursor: "pointer"
+                }}
+              >
+                {userData.firstName ? userData.firstName[0].toUpperCase() : '?'}
+              </Avatar>
 
               {/* First Name Display */}
               <Typography sx={{ fontWeight: 'bold', color: '#5E2C04' }}>

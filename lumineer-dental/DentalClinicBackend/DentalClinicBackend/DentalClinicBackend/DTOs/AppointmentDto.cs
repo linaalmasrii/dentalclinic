@@ -1,5 +1,3 @@
-
-
 namespace DentalClinicBackend.DTOs
 {
     public class AppointmentDto
@@ -8,7 +6,7 @@ namespace DentalClinicBackend.DTOs
         public int UserId { get; set; }
         public int DoctorId { get; set; }
         public DateTime AppointmentDate { get; set; }
-        public string? TimeSlot { get; set; } // Should match a slot from DoctorDto
+        public string? TimeSlot { get; set; } 
         public string? ServiceType { get; set; }
         public string Status { get; set; } = "Pending"; 
     }

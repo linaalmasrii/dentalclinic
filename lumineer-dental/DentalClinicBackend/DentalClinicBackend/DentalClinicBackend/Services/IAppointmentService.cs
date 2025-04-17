@@ -9,5 +9,7 @@ namespace DentalClinicBackend.Services
         Task<List<AppointmentDto>> GetPendingAppointmentsAsync();
         Task<List<AppointmentDto>> GetDoctorAppointmentsAsync(int doctorId);
         Task<List<AppointmentDto>> GetUserAppointmentsAsync(int userId);
+        Task<List<string>> GetAvailableTimeSlotsAsync(int doctorId, DateTime date);
+        Task<AppointmentDto> GetAppointmentByDoctorAndTimeAsync(int doctorId, DateTime date, string timeSlot);
     }
-}
+}    

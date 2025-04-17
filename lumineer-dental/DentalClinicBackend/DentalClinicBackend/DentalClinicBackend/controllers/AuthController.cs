@@ -23,45 +23,53 @@ namespace DentalClinicBackend.Controllers
             _configuration = configuration;
         }
 
-        // ✅ REGISTER Endpoint
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
-        {
-            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
-                return BadRequest(new { message = "Email and password are required." });
-
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-                return BadRequest(new { message = "Email already exists!" });
-
-            var user = new User
+        //  REGISTER Endpoint
+    [HttpPost("register")]
+public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
+{
+    try
     {
-        FirstName = request.FirstName,
-        LastName = request.LastName,
-        Email = request.Email,
-        PhoneNumber = request.Phone,
-        Gender = request.Gender,
-        DateOfBirth = request.DateOfBirth,
-        PasswordHash = HashPassword(request.Password),
-        
-             
-             // Medical Information
-        HasAllergies = request.HasAllergies,
-        Allergies = request.Allergies,
-        TakingMedications = request.TakingMedications,
-        Medications = request.Medications,
-        HasDentalHistory = request.HasDentalHistory,
-        DentalHistory = request.DentalHistory,
-        HasSurgeries = request.HasSurgeries,
-        Surgeries = request.Surgeries,
-        HasAdditionalConcerns = request.HasAdditionalConcerns,
-        AdditionalConcerns = request.AdditionalConcerns
-    };
+        Console.WriteLine($"Received registration request for email: {request.Email}"); // Debug log
 
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+        if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+            return BadRequest(new { message = "Email and password are required." });
 
-            return Ok(new { message = "User registered successfully!" });
-        }
+        if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            return BadRequest(new { message = "Email already exists!" });
+
+        var user = new User
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            PhoneNumber = request.Phone,
+            Gender = request.Gender,
+            DateOfBirth = request.DateOfBirth,
+            PasswordHash = HashPassword(request.Password),
+            // Medical Information
+            HasAllergies = request.HasAllergies,
+            Allergies = request.Allergies,
+            TakingMedications = request.TakingMedications,
+            Medications = request.Medications,
+            HasDentalHistory = request.HasDentalHistory,
+            DentalHistory = request.DentalHistory,
+            HasSurgeries = request.HasSurgeries,
+            Surgeries = request.Surgeries,
+            HasAdditionalConcerns = request.HasAdditionalConcerns,
+            AdditionalConcerns = request.AdditionalConcerns
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "User registered successfully!" });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Registration error: {ex.Message}"); // Debug log
+        return BadRequest(new { message = "Registration failed", error = ex.Message });
+    }
+}
 
         // LOGIN Endpoint (Returns JWT Token)
         [HttpPost("login")]

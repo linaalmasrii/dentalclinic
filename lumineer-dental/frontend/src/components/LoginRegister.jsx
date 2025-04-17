@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import {
-  Container, TextField, Button, Typography, Box, Card, CardContent, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio
+  Container, TextField, Button, Typography, Box, Card, CardContent, 
+  FormControl, FormLabel, RadioGroup, FormControlLabel, Radio,
+  FormHelperText, Link
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
-import { login, register, registerUser, loginUser } from "../api";
+import {  registerUser, loginUser } from "../api";
 
 
 
@@ -46,8 +50,70 @@ const StyledCard = styled(Card)({
   marginTop: "85px",
 });
 
+// Add validation schemas
+const loginSchema = Yup.object().shape({
+  email: Yup.string()
+    .email('Invalid email address')
+    .required('Email is required'),
+  password: Yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+});
+
+const registerSchema = Yup.object().shape({
+  firstName: Yup.string()
+    .max(50, 'First name must be 50 characters or less')
+    .required('First name is required'),
+  lastName: Yup.string()
+    .max(50, 'Last name must be 50 characters or less')
+    .required('Last name is required'),
+  email: Yup.string()
+    .email('Invalid email address')
+    .max(100, 'Email must be 100 characters or less')
+    .required('Email is required'),
+  phone: Yup.string()
+    .max(20, 'Phone number must be 20 characters or less')
+    .required('Phone number is required'),
+  gender: Yup.string()
+    .required('Gender is required'),
+  dob: Yup.date()
+    .nullable()
+    .required('Date of birth is required'),
+  password: Yup.string()
+    .min(8, 'Password must be at least 8 characters')
+    .required('Password is required'),
+});
+
+const medicalInfoSchema = Yup.object().shape({
+  hasAllergies: Yup.string().required('Please select yes or no'),
+  allergies: Yup.string().when('hasAllergies', {
+    is: 'yes',
+    then: Yup.string().required('Please specify your allergies').max(255, 'Too long')
+  }),
+  takingMedications: Yup.string().required('Please select yes or no'),
+  medications: Yup.string().when('takingMedications', {
+    is: 'yes',
+    then: Yup.string().required('Please specify your medications').max(255, 'Too long')
+  }),
+  hasDentalHistory: Yup.string().required('Please select yes or no'),
+  dentalHistory: Yup.string().when('hasDentalHistory', {
+    is: 'yes',
+    then: Yup.string().required('Please specify your dental history').max(255, 'Too long')
+  }),
+  hasSurgeries: Yup.string().required('Please select yes or no'),
+  surgeries: Yup.string().when('hasSurgeries', {
+    is: 'yes',
+    then: Yup.string().required('Please specify your surgeries').max(255, 'Too long')
+  }),
+  hasAdditionalConcerns: Yup.string().required('Please select yes or no'),
+  additionalConcerns: Yup.string().when('hasAdditionalConcerns', {
+    is: 'yes',
+    then: Yup.string().required('Please specify your concerns').max(255, 'Too long')
+  })
+});
+
 const LoginRegister = () => {
-  const [step, setStep] = useState("login"); // "login" | "register" | "medicalInfo"
+  const [step, setStep] = useState("login");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -83,33 +149,161 @@ const LoginRegister = () => {
     additionalConcerns: "",
   });
 
+  // Login Formik
+  const loginFormik = useFormik({
+    initialValues: {
+      email: '',
+      password: '',
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const result = await loginUser(values);
+        localStorage.setItem("user", JSON.stringify(result));
+        navigate('/LoginS');
+      } catch (error) {
+        console.error('Login error:', error);
+        alert(error.message);
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  // Register Formik
+  const registerFormik = useFormik({
+    initialValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      gender: '',
+      dob: '',
+      password: '',
+    },
+    validationSchema: registerSchema,
+    onSubmit: (values) => {
+      // Move to medical info step 
+      setStep("medicalInfo");
+    },
+  });
+
+  // Medical Info Formik
+  const medicalFormik = useFormik({
+    initialValues: {
+      hasAllergies: 'no',
+      allergies: '',
+      takingMedications: 'no',
+      medications: '',
+      hasDentalHistory: 'no',
+      dentalHistory: '',
+      hasSurgeries: 'no',
+      surgeries: '',
+      hasAdditionalConcerns: 'no',
+      additionalConcerns: ''
+    },
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        // Combine registration data with medical info
+        const completeUserData = {
+          ...registerFormik.values,
+          dateOfBirth: registerFormik.values.dob ? new Date(registerFormik.values.dob).toISOString() : null,
+          hasAllergies: values.hasAllergies === 'yes',
+          allergies: values.hasAllergies === 'yes' ? values.allergies : null,
+          takingMedications: values.takingMedications === 'yes',
+          medications: values.takingMedications === 'yes' ? values.medications : null,
+          hasDentalHistory: values.hasDentalHistory === 'yes',
+          dentalHistory: values.hasDentalHistory === 'yes' ? values.dentalHistory : null,
+          hasSurgeries: values.hasSurgeries === 'yes',
+          surgeries: values.hasSurgeries === 'yes' ? values.surgeries : null,
+          hasAdditionalConcerns: values.hasAdditionalConcerns === 'yes',
+          additionalConcerns: values.hasAdditionalConcerns === 'yes' ? values.additionalConcerns : null
+        };
+
+        await registerUser(completeUserData);
+        alert("Registration successful! Please login.");
+        setStep("login");
+      } catch (error) {
+        console.error('Registration error:', error);
+        alert(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+  });
+
   // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
       if (step === "login") {
+        // Validate email and password
+        if (!loginData.email || !loginData.password) {
+          throw new Error("Email and password are required");
+        }
+        
+        console.log('Attempting login with:', {
+          email: loginData.email,
+          password: loginData.password.length + ' characters'
+        });
+        
         const result = await loginUser(loginData);
-        alert("Login successful! Token: " + result.token);
+        console.log('Login result:', result);
         localStorage.setItem("user", JSON.stringify(result));
         navigate('/LoginS');
       } else if (step === "register") {
-        setStep("medicalInfo"); // Move to Medical Info Step
+        // Format data to match UserRegisterDto requirements
+        const formattedData = {
+          firstName: registerData.firstName || '',
+          lastName: registerData.lastName || '',
+          email: registerData.email || '',
+          password: registerData.password || '',
+          phone: registerData.phone || '',
+          dateOfBirth: registerData.dob ? new Date(registerData.dob).toISOString() : null,
+          gender: registerData.gender || null,
+          // Set all medical fields to default values
+          hasAllergies: false,
+          takingMedications: false,
+          hasDentalHistory: false,
+          hasSurgeries: false,
+          hasAdditionalConcerns: false,
+          allergies: null,
+          medications: null,
+          dentalHistory: null,
+          surgeries: null,
+          additionalConcerns: null
+        };
+
+        // Validate required fields
+        if (!formattedData.firstName) throw new Error("First name is required");
+        if (!formattedData.lastName) throw new Error("Last name is required");
+        if (!formattedData.email) throw new Error("Email is required");
+        if (!formattedData.password || formattedData.password.length < 8) {
+          throw new Error("Password must be at least 8 characters long");
+        }
+        if (!formattedData.phone) throw new Error("Phone number is required");
+
+        console.log('Sending registration data:', formattedData);
+        
+        await registerUser(formattedData);
+        alert("Registration successful! Please login.");
+        setStep("login");
       } else if (step === "medicalInfo") {
         const formattedUserData = {
-          ...registerData,
+          firstName: registerData.firstName,
+          lastName: registerData.lastName,
+          email: registerData.email,
+          phone: registerData.phone,
           gender: registerData.gender || "Not Specified",
           dateOfBirth: registerData.dob ? new Date(registerData.dob).toISOString() : null,
-          hasAllergies: medicalInfo.hasAllergies === "yes",
           allergies: medicalInfo.hasAllergies === "yes" ? medicalInfo.allergies : null,
-          takingMedications: medicalInfo.takingMedications === "yes",
           medications: medicalInfo.takingMedications === "yes" ? medicalInfo.medications : null,
-          hasDentalHistory: medicalInfo.hasDentalHistory === "yes",
           dentalHistory: medicalInfo.hasDentalHistory === "yes" ? medicalInfo.dentalHistory : null,
-          hasSurgeries: medicalInfo.hasSurgeries === "yes",
           surgeries: medicalInfo.hasSurgeries === "yes" ? medicalInfo.surgeries : null,
-          hasAdditionalConcerns: medicalInfo.hasAdditionalConcerns === "yes",
-          additionalConcerns: medicalInfo.hasAdditionalConcerns === "yes" ? medicalInfo.additionalConcerns : null,
+          password: registerData.password
         };
   
         const result = await registerUser(formattedUserData);
@@ -117,7 +311,8 @@ const LoginRegister = () => {
         setStep("login");
       }
     } catch (error) {
-      alert(error.message || "An error occurred. Please try again.");
+      console.error('Form submission error:', error);
+      alert(error.message);
     } finally {
       setLoading(false);
     }
@@ -140,188 +335,357 @@ const LoginRegister = () => {
     };
   }, [navigate]);
 
+  // Update the return JSX for login form
+  const renderLoginForm = () => (
+    <>
+      <form onSubmit={loginFormik.handleSubmit}>
+        <TextField
+          fullWidth
+          id="email"
+          name="email"
+          label="Email"
+          margin="normal"
+          value={loginFormik.values.email}
+          onChange={loginFormik.handleChange}
+          onBlur={loginFormik.handleBlur}
+          error={loginFormik.touched.email && Boolean(loginFormik.errors.email)}
+          helperText={loginFormik.touched.email && loginFormik.errors.email}
+        />
+        <TextField
+          fullWidth
+          id="password"
+          name="password"
+          label="Password"
+          type="password"
+          margin="normal"
+          value={loginFormik.values.password}
+          onChange={loginFormik.handleChange}
+          onBlur={loginFormik.handleBlur}
+          error={loginFormik.touched.password && Boolean(loginFormik.errors.password)}
+          helperText={loginFormik.touched.password && loginFormik.errors.password}
+        />
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading}
+          sx={{ marginTop: "20px", backgroundColor: "#8B4513", color: "white", fontWeight: "bold" }}
+        >
+          {loading ? "Loading..." : "Login"}
+        </Button>
+      </form>
+      <Typography
+        align="center"
+        sx={{ marginTop: "15px", cursor: "pointer", color: "#8B4513", fontWeight: "bold" }}
+        onClick={() => setStep("register")}
+      >
+        New here? Register
+      </Typography>
+    </>
+  );
+
+  // Update the return JSX for register form
+  const renderRegisterForm = () => (
+    <form onSubmit={registerFormik.handleSubmit}>
+      <TextField
+        fullWidth
+        id="firstName"
+        name="firstName"
+        label="First Name"
+        margin="normal"
+        value={registerFormik.values.firstName}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.firstName && Boolean(registerFormik.errors.firstName)}
+        helperText={registerFormik.touched.firstName && registerFormik.errors.firstName}
+      />
+      <TextField
+        fullWidth
+        id="lastName"
+        name="lastName"
+        label="Last Name"
+        margin="normal"
+        value={registerFormik.values.lastName}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.lastName && Boolean(registerFormik.errors.lastName)}
+        helperText={registerFormik.touched.lastName && registerFormik.errors.lastName}
+      />
+      <TextField
+        fullWidth
+        id="email"
+        name="email"
+        label="Email"
+        margin="normal"
+        value={registerFormik.values.email}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.email && Boolean(registerFormik.errors.email)}
+        helperText={registerFormik.touched.email && registerFormik.errors.email}
+      />
+      <TextField
+        fullWidth
+        id="phone"
+        name="phone"
+        label="Phone"
+        margin="normal"
+        value={registerFormik.values.phone}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.phone && Boolean(registerFormik.errors.phone)}
+        helperText={registerFormik.touched.phone && registerFormik.errors.phone}
+      />
+
+      <FormControl 
+        component="fieldset" 
+        sx={{ marginTop: "10px" }}
+        error={registerFormik.touched.gender && Boolean(registerFormik.errors.gender)}
+      >
+        <FormLabel component="legend">Gender</FormLabel>
+        <RadioGroup
+          row
+          name="gender"
+          value={registerFormik.values.gender}
+          onChange={registerFormik.handleChange}
+        >
+          <FormControlLabel value="male" control={<Radio />} label="Male" />
+          <FormControlLabel value="female" control={<Radio />} label="Female" />
+        </RadioGroup>
+        {registerFormik.touched.gender && registerFormik.errors.gender && (
+          <FormHelperText>{registerFormik.errors.gender}</FormHelperText>
+        )}
+      </FormControl>
+        #date of 
+      <TextField
+        fullWidth
+        id="dob"
+        name="dob"
+        label="Date of Birth"
+        type="date"
+        margin="normal"
+        InputLabelProps={{ shrink: true }}
+        value={registerFormik.values.dob}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.dob && Boolean(registerFormik.errors.dob)}
+        helperText={registerFormik.touched.dob && registerFormik.errors.dob}
+      />
+
+      <TextField
+        fullWidth
+        id="password"
+        name="password"
+        label="Password"
+        type="password"
+        margin="normal"
+        value={registerFormik.values.password}
+        onChange={registerFormik.handleChange}
+        onBlur={registerFormik.handleBlur}
+        error={registerFormik.touched.password && Boolean(registerFormik.errors.password)}
+        helperText={registerFormik.touched.password && registerFormik.errors.password}
+      />
+
+      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => setStep("login")}
+          sx={{ color: "#8B4513", borderColor: "#8B4513" }}
+        >
+          Back to Login
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          sx={{ backgroundColor: "#8B4513", color: "white" }}
+        >
+          Next
+        </Button>
+      </Box>
+
+      <Box sx={{ mt: 2, textAlign: 'center' }}>
+        Already have an account?{' '}
+        <Link
+          component="button"
+          variant="body2"
+          onClick={() => setStep("login")}
+          sx={{ color: "#8B4513" }}
+        >
+          Login here
+        </Link>
+      </Box>
+    </form>
+  );
+
+  // Update the return JSX for medical form
+  const renderMedicalForm = () => (
+    <form onSubmit={medicalFormik.handleSubmit}>
+      {/* Allergies */}
+      <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
+        <FormLabel component="legend">Do you have any allergies?</FormLabel>
+        <RadioGroup
+          row
+          name="hasAllergies"
+          value={medicalFormik.values.hasAllergies}
+          onChange={medicalFormik.handleChange}
+        >
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        </RadioGroup>
+        {medicalFormik.values.hasAllergies === "yes" && (
+          <TextField
+            fullWidth
+            name="allergies"
+            label="Please specify"
+            margin="normal"
+            value={medicalFormik.values.allergies}
+            onChange={medicalFormik.handleChange}
+          />
+        )}
+      </FormControl>
+
+      {/* Medications */}
+      <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
+        <FormLabel component="legend">Are you taking any medications?</FormLabel>
+        <RadioGroup
+          row
+          name="takingMedications"
+          value={medicalFormik.values.takingMedications}
+          onChange={medicalFormik.handleChange}
+        >
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        </RadioGroup>
+        {medicalFormik.values.takingMedications === "yes" && (
+          <TextField
+            fullWidth
+            name="medications"
+            label="Please specify"
+            margin="normal"
+            value={medicalFormik.values.medications}
+            onChange={medicalFormik.handleChange}
+          />
+        )}
+      </FormControl>
+
+      {/* Dental History */}
+      <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
+        <FormLabel component="legend">Do you have any previous dental history?</FormLabel>
+        <RadioGroup
+          row
+          name="hasDentalHistory"
+          value={medicalFormik.values.hasDentalHistory}
+          onChange={medicalFormik.handleChange}
+        >
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        </RadioGroup>
+        {medicalFormik.values.hasDentalHistory === "yes" && (
+          <TextField
+            fullWidth
+            name="dentalHistory"
+            label="Please specify"
+            margin="normal"
+            value={medicalFormik.values.dentalHistory}
+            onChange={medicalFormik.handleChange}
+          />
+        )}
+      </FormControl>
+
+      {/* Surgeries */}
+      <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
+        <FormLabel component="legend">Have you had any surgeries?</FormLabel>
+        <RadioGroup
+          row
+          name="hasSurgeries"
+          value={medicalFormik.values.hasSurgeries}
+          onChange={medicalFormik.handleChange}
+        >
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        </RadioGroup>
+        {medicalFormik.values.hasSurgeries === "yes" && (
+          <TextField
+            fullWidth
+            name="surgeries"
+            label="Please specify"
+            margin="normal"
+            value={medicalFormik.values.surgeries}
+            onChange={medicalFormik.handleChange}
+          />
+        )}
+      </FormControl>
+
+      {/* Additional Concerns */}
+      <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
+        <FormLabel component="legend">Do you have any additional concerns?</FormLabel>
+        <RadioGroup
+          row
+          name="hasAdditionalConcerns"
+          value={medicalFormik.values.hasAdditionalConcerns}
+          onChange={medicalFormik.handleChange}
+        >
+          <FormControlLabel value="no" control={<Radio />} label="No" />
+          <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+        </RadioGroup>
+        {medicalFormik.values.hasAdditionalConcerns === "yes" && (
+          <TextField
+            fullWidth
+            name="additionalConcerns"
+            label="Please specify"
+            margin="normal"
+            value={medicalFormik.values.additionalConcerns}
+            onChange={medicalFormik.handleChange}
+          />
+        )}
+      </FormControl>
+
+      <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => setStep("register")}
+          sx={{ color: "#8B4513", borderColor: "#8B4513" }}
+        >
+          Back
+        </Button>
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading}
+          sx={{ backgroundColor: "#8B4513", color: "white" }}
+        >
+          {loading ? "Loading..." : "Complete Registration"}
+        </Button>
+      </Box>
+    </form>
+  );
+
   return (
     <BackgroundContainer>
       <Header>
         <Typography variant="h5" color="#5E2C04">
-          Lumineer Dental - {step === "login" ? "Login" : step === "register" ? "Register" : "Medical Info"}
+          Lumineer Dental - {
+            step === "login" ? "Login" : 
+            step === "register" ? "Register" : 
+            "Medical Information"
+          }
         </Typography>
       </Header>
 
       <StyledCard>
         <CardContent>
           <Typography variant="h5" align="center" sx={{ marginBottom: "20px" }}>
-            {step === "login" ? "Welcome Back!" : step === "register" ? "Create an Account" : "Medical Information"}
+            {step === "login" ? "Welcome Back!" : 
+             step === "register" ? "Create an Account" : 
+             "Medical Information"}
           </Typography>
 
-          {/* LOGIN FORM */}
-          {step === "login" && (
-            <>
-              <TextField label="Email" fullWidth margin="normal" value={loginData.email} onChange={(e) => setLoginData({ ...loginData, email: e.target.value })} />
-              <TextField label="Password" type="password" fullWidth margin="normal" value={loginData.password} onChange={(e) => setLoginData({ ...loginData, password: e.target.value })} />
-
-              <Button variant="contained" fullWidth onClick={handleSubmit} sx={{ marginTop: "20px", backgroundColor: "#8B4513", color: "white", fontWeight: "bold" }}>
-                {loading ? "Loading..." : "Login"}
-              </Button>
-
-              <Typography align="center" sx={{ marginTop: "15px", cursor: "pointer", color: "#8B4513", fontWeight: "bold" }} onClick={() => setStep("register")}>
-                New here? Register
-              </Typography>
-            </>
-          )}
-
-          {/* REGISTRATION FORM */}
-          {step === "register" && (
-            <>
-              <TextField label="First Name" fullWidth margin="normal" value={registerData.firstName} onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })} />
-              <TextField label="Last Name" fullWidth margin="normal" value={registerData.lastName} onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })} />
-              <TextField label="Email" fullWidth margin="normal" value={registerData.email} onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })} />
-              <TextField label="Phone" fullWidth margin="normal" value={registerData.phone} onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })} />
-
-              {/* Gender Selection */}
-              <FormControl component="fieldset" sx={{ marginTop: "10px" }}>
-                <FormLabel component="legend">Gender</FormLabel>
-                <RadioGroup row value={registerData.gender} onChange={(e) => setRegisterData({ ...registerData, gender: e.target.value })}>
-                  <FormControlLabel value="male" control={<Radio />} label="Male" />
-                  <FormControlLabel value="female" control={<Radio />} label="Female" />
-                </RadioGroup>
-              </FormControl>
-
-              {/* Date of Birth */}
-              <TextField label="Date of Birth" type="date" fullWidth margin="normal" InputLabelProps={{ shrink: true }} value={registerData.dob} onChange={(e) => setRegisterData({ ...registerData, dob: e.target.value })} />
-              <TextField label="Password" type="password" fullWidth margin="normal" value={registerData.password} onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })} />
-
-              <Button variant="contained" fullWidth onClick={handleSubmit} sx={{ marginTop: "20px", backgroundColor: "#8B4513", color: "white", fontWeight: "bold" }}>
-                {loading ? "Loading..." : "Next"}
-              </Button>
-            </>
-          )}
-{/* MEDICAL INFORMATION FORM */}
-{step === "medicalInfo" && (
-  <>
-    {/* Allergies */}
-    <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
-      <FormLabel component="legend">Do you have any allergies?</FormLabel>
-      <RadioGroup
-        row
-        value={medicalInfo.hasAllergies}
-        onChange={(e) => setMedicalInfo({ ...medicalInfo, hasAllergies: e.target.value })}
-      >
-        <FormControlLabel value="no" control={<Radio />} label="No" />
-        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-      </RadioGroup>
-      {medicalInfo.hasAllergies === "yes" && (
-        <TextField 
-          label="Please specify" 
-          fullWidth 
-          margin="normal" 
-          value={medicalInfo.allergies} 
-          onChange={(e) => setMedicalInfo({ ...medicalInfo, allergies: e.target.value })} 
-        />
-      )}
-    </FormControl>
-
-    {/* Medications */}
-    <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
-      <FormLabel component="legend">Are you taking any medications?</FormLabel>
-      <RadioGroup
-        row
-        value={medicalInfo.takingMedications}
-        onChange={(e) => setMedicalInfo({ ...medicalInfo, takingMedications: e.target.value })}
-      >
-        <FormControlLabel value="no" control={<Radio />} label="No" />
-        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-      </RadioGroup>
-      {medicalInfo.takingMedications === "yes" && (
-        <TextField 
-          label="Please specify" 
-          fullWidth 
-          margin="normal" 
-          value={medicalInfo.medications} 
-          onChange={(e) => setMedicalInfo({ ...medicalInfo, medications: e.target.value })} 
-        />
-      )}
-    </FormControl>
-
-    {/* Dental History */}
-    <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
-      <FormLabel component="legend">Do you have any previous dental history?</FormLabel>
-      <RadioGroup
-        row
-        value={medicalInfo.hasDentalHistory}
-        onChange={(e) => setMedicalInfo({ ...medicalInfo, hasDentalHistory: e.target.value })}
-      >
-        <FormControlLabel value="no" control={<Radio />} label="No" />
-        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-      </RadioGroup>
-      {medicalInfo.hasDentalHistory === "yes" && (
-        <TextField 
-          label="Please specify" 
-          fullWidth 
-          margin="normal" 
-          value={medicalInfo.dentalHistory} 
-          onChange={(e) => setMedicalInfo({ ...medicalInfo, dentalHistory: e.target.value })} 
-        />
-      )}
-    </FormControl>
-
-    {/* Surgeries */}
-    <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
-      <FormLabel component="legend">Have you had any surgeries?</FormLabel>
-      <RadioGroup
-        row
-        value={medicalInfo.hasSurgeries}
-        onChange={(e) => setMedicalInfo({ ...medicalInfo, hasSurgeries: e.target.value })}
-      >
-        <FormControlLabel value="no" control={<Radio />} label="No" />
-        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-      </RadioGroup>
-      {medicalInfo.hasSurgeries === "yes" && (
-        <TextField 
-          label="Please specify" 
-          fullWidth 
-          margin="normal" 
-          value={medicalInfo.surgeries} 
-          onChange={(e) => setMedicalInfo({ ...medicalInfo, surgeries: e.target.value })} 
-        />
-      )}
-    </FormControl>
-
-    {/* Additional Concerns */}
-    <FormControl component="fieldset" sx={{ marginTop: "10px", width: "100%" }}>
-      <FormLabel component="legend">Do you have any additional concerns?</FormLabel>
-      <RadioGroup
-        row
-        value={medicalInfo.hasAdditionalConcerns}
-        onChange={(e) => setMedicalInfo({ ...medicalInfo, hasAdditionalConcerns: e.target.value })}
-      >
-        <FormControlLabel value="no" control={<Radio />} label="No" />
-        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-      </RadioGroup>
-      {medicalInfo.hasAdditionalConcerns === "yes" && (
-        <TextField 
-          label="Please specify" 
-          fullWidth 
-          margin="normal" 
-          value={medicalInfo.additionalConcerns} 
-          onChange={(e) => setMedicalInfo({ ...medicalInfo, additionalConcerns: e.target.value })} 
-        />
-      )}
-    </FormControl>
-
-    {/* Submit Button */}
-    <Button 
-      variant="contained" 
-      fullWidth 
-      onClick={handleSubmit} 
-      sx={{ marginTop: "20px", backgroundColor: "#8B4513", color: "white", fontWeight: "bold" }}
-    >
-      {loading ? "Loading..." : "Complete Registration"}
-    </Button>
-  </>
-)}
-
-         
+          {step === "login" && renderLoginForm()}
+          {step === "register" && renderRegisterForm()}
+          {step === "medicalInfo" && renderMedicalForm()}
         </CardContent>
       </StyledCard>
     </BackgroundContainer>
