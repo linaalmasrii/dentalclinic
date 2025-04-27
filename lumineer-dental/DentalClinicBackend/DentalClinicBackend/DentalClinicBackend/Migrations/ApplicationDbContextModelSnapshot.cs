@@ -36,6 +36,12 @@ namespace DentalClinicBackend.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("DoctorId1")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("ServiceType")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -54,11 +60,20 @@ namespace DentalClinicBackend.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("UserId1")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId");
 
+                    b.HasIndex("DoctorId1");
+
+                    b.HasIndex("ServiceId");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Appointments");
                 });
@@ -75,7 +90,7 @@ namespace DentalClinicBackend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("ImageUrl")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -85,12 +100,15 @@ namespace DentalClinicBackend.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<string>("PhoneNumber")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Specialty")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -98,6 +116,29 @@ namespace DentalClinicBackend.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Doctors");
+                });
+
+            modelBuilder.Entity("DentalClinicBackend.Models.Service", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Services");
                 });
 
             modelBuilder.Entity("DentalClinicBackend.Models.User", b =>
@@ -214,18 +255,33 @@ namespace DentalClinicBackend.Migrations
             modelBuilder.Entity("DentalClinicBackend.Models.Appointment", b =>
                 {
                     b.HasOne("DentalClinicBackend.Models.Doctor", "Doctor")
-                        .WithMany("Appointments")
+                        .WithMany()
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("DentalClinicBackend.Models.Doctor", null)
+                        .WithMany("Appointments")
+                        .HasForeignKey("DoctorId1");
+
+                    b.HasOne("DentalClinicBackend.Models.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("DentalClinicBackend.Models.User", "User")
-                        .WithMany("Appointments")
+                        .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("DentalClinicBackend.Models.User", null)
+                        .WithMany("Appointments")
+                        .HasForeignKey("UserId1");
+
                     b.Navigation("Doctor");
+
+                    b.Navigation("Service");
 
                     b.Navigation("User");
                 });

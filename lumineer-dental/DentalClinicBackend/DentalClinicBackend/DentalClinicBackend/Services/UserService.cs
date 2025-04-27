@@ -20,6 +20,7 @@ namespace DentalClinicBackend.Services
             if (user == null)
                 throw new KeyNotFoundException("User not found");
 
+           Console.WriteLine("User? " + user);
             return new UserDto
             {
                 Id = user.Id,

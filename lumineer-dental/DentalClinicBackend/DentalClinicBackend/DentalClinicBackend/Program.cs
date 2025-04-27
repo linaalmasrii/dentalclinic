@@ -20,7 +20,7 @@ builder.Services.AddLogging(logging =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new ArgumentException("⚠️ ERROR: PostgreSQL connection string is missing in appsettings.json.");
+    throw new ArgumentException(" ERROR: PostgreSQL connection string is missing in appsettings.json.");
 }
 
 // Add PostgreSQL

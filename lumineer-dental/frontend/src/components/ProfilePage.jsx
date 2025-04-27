@@ -1,22 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Container, 
-  TextField, 
-  Typography, 
-  Box, 
-  Paper, 
-  Grid,
-  CircularProgress,
-  IconButton,
-  Menu,
-  MenuItem,
-  Avatar,
-  Button
-} from "@mui/material";
+import { Container, TextField, Typography, Box, Paper, Grid,  CircularProgress,IconButton,Menu, MenuItem,Avatar,Button} from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { MoreVert as MoreVertIcon } from '@mui/icons-material';
 import { Link as ScrollLink } from 'react-scroll';
 import { Link as RouterLink } from 'react-router-dom';
+import{getProfile} from '../api';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
@@ -39,45 +27,37 @@ const ProfilePage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-    const storedUser = localStorage.getItem("user");
-      if (!storedUser) {
-        alert("Please login to view your profile");
-        navigate('/login-register');
-        return;
-      }
-
       try {
-        const parsedUser = JSON.parse(storedUser);
-        console.log('Parsed user data:', parsedUser); // Debug log
-
-        // Map the user data correctly from the registration data structure
+        const data = await getProfile();    
+        console.log("Profile API response:", data);
         setUser({
-          firstName: parsedUser.user.FirstName,
-          lastName: parsedUser.user.LastName,
-          email: parsedUser.user.Email,
-          phoneNumber: parsedUser.user.Phone || 'Not specified',
-          gender: parsedUser.user.Gender || 'Not specified',
-          dateOfBirth: parsedUser.user.DateOfBirth ? new Date(parsedUser.user.DateOfBirth).toLocaleDateString() : 'Not specified',
-          allergies: parsedUser.user.Allergies || 'None',
-          medications: parsedUser.user.Medications || 'None',
-          dentalHistory: parsedUser.user.DentalHistory || 'No records',
-          surgeries: parsedUser.user.Surgeries || 'None'
+          firstName: data.FirstName,
+          lastName:  data.LastName,
+          email:     data.Email,
+          phoneNumber: data.PhoneNumber,
+          gender:    data.Gender,
+          dateOfBirth: data.DateOfBirth ? new Date(data.DateOfBirth).toLocaleDateString() : 'Not specified',
+          allergies: data.HasAllergies ? data.Allergies : 'None',
+          medications: data.TakingMedications ? data.Medications : 'None',
+          dentalHistory: data.HasDentalHistory ? data.DentalHistory : 'No records',
+          surgeries: data.HasSurgeries ? data.Surgeries : 'None',
+          additionalConcerns: data.HasAdditionalConcerns ? data.AdditionalConcerns : 'None'
         });
       } catch (error) {
-        console.error("Error loading user data:", error);
-        alert("Error loading profile information");
+        console.error("Error loading user profile:", error);
+        alert("Please login to view your profile");
+        navigate('/login-register');
       } finally {
         setLoading(false);
       }
     };
-
     fetchUserData();
   }, [navigate]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'ArrowLeft') {
-        navigate('/'); // Go back to home or previous page
+        navigate('/LoginS'); 
       }
     };
 
@@ -183,7 +163,7 @@ const ProfilePage = () => {
               </Menu>
             </Box>
           ) : (
-            <RouterLink to="/login-register" style={{ textDecoration: 'none' }}>
+            <RouterLink to="/loginRegister" style={{ textDecoration: 'none' }}>
               <Button
                 variant="contained"
                 sx={{

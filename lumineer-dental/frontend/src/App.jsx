@@ -4,7 +4,6 @@ import HomePage from './components/HomePage';
 import LoginRegister from './components/LoginRegister';
 import LoginS from './components/LoginS'; 
 import BookingPage from './components/BookingPage';
-import ProfileInfo from './components/ProfilePage';
 import PatientHistory from './components/PatientHistory';
 import ProfilePage from './components/ProfilePage';
 

@@ -13,17 +13,19 @@ namespace DentalClinicBackend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
-        [Required, MaxLength(100)]
+        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [Required, MaxLength(100)]
-        public string Specialty { get; set; } = string.Empty;
+        [MaxLength(100)]
+        public string Specialty { get; set; } = string.Empty; // like "Botox"
 
-        [Required, MaxLength(255)]
-        public string Email { get; set; } = string.Empty;
+        [MaxLength(100)]
+        public string Title { get; set; } = string.Empty; // like "Botox Specialist"
 
-        [Required, MaxLength(20)]
-        public string PhoneNumber { get; set; } = string.Empty;
+        [MaxLength(255)]
+        public string ImageUrl { get; set; } = string.Empty;
+
+        public int ServiceId { get; set; } 
 
         // Define a Value Converter for List<string>
         private static readonly ValueConverter<List<string>, string> _converter =
@@ -40,24 +42,25 @@ namespace DentalClinicBackend.Models
                 c => c.ToList()
             );
 
-        // ✅ Apply Value Converter & Comparer to AvailableTimeSlots
+        //  Apply Value Converter & Comparer to AvailableTimeSlots
         [Required]
         public List<string> AvailableTimeSlots { get; set; } = new();
 
-        // Add this property
         public List<Appointment> Appointments { get; set; } = new();
 
+        // Configure method to apply the value converter and comparer
         public static void Configure(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Doctor>()
                 .Property(d => d.AvailableTimeSlots)
-                .HasConversion(_converter)  // Converts List<string> to string for database storage
-                .Metadata.SetValueComparer(_comparer); // Ensures proper change tracking
+                .HasConversion(_converter) 
+                .Metadata.SetValueComparer(_comparer); 
         }
 
+        // Constructor
         public Doctor()
         {
-            AvailableTimeSlots = new List<string>(); // Ensure it's initialized
+            AvailableTimeSlots = new List<string>(); 
         }
     }
 }

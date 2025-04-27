@@ -24,6 +24,8 @@ namespace DentalClinicBackend.Controllers
         public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await _userService.GetUserByIdAsync(id);
+
+            Console.WriteLine("user: " + user);
             return Ok(user);
         }
 

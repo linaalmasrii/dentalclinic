@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using DentalClinicBackend.Data;
 using DentalClinicBackend.Models;
 using DentalClinicBackend.DTOs;
+
 
 namespace DentalClinicBackend.Controllers
 {
@@ -138,6 +140,45 @@ public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
         private bool VerifyPassword(string enteredPassword, string storedHash)
         {
             return HashPassword(enteredPassword) == storedHash;
+        }
+
+        // GET api/auth/profile
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            // 1) Extract userId from JWT
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(idClaim, out var userId))
+                return Unauthorized();
+
+            // 2) Fetch and project into your DTO (including med‑info)
+            var profile = await _context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new UserDto
+                {
+                    Id                     = u.Id,
+                    FirstName              = u.FirstName,
+                    LastName               = u.LastName,
+                    Email                  = u.Email,
+                    PhoneNumber            = u.PhoneNumber,
+                    DateOfBirth            = u.DateOfBirth,
+                    Gender                 = u.Gender,
+                    HasAllergies           = u.HasAllergies,
+                    Allergies              = u.Allergies,
+                    TakingMedications      = u.TakingMedications,
+                    Medications            = u.Medications,
+                    HasDentalHistory       = u.HasDentalHistory,
+                    DentalHistory          = u.DentalHistory,
+                    HasSurgeries           = u.HasSurgeries,
+                    Surgeries              = u.Surgeries,
+                    HasAdditionalConcerns  = u.HasAdditionalConcerns,
+                    AdditionalConcerns     = u.AdditionalConcerns
+                })
+                .FirstOrDefaultAsync();
+
+            if (profile == null) return NotFound();
+            return Ok(profile);
         }
     }
 }

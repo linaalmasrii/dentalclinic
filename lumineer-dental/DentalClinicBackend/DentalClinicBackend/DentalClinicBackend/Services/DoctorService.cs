@@ -22,26 +22,29 @@ namespace DentalClinicBackend.Services
                     Id = d.Id,
                     Name = d.Name,
                     Specialty = d.Specialty,
-                    ImageUrl = d.Email,
+                    Title = d.Title,
+                    ImageUrl = d.ImageUrl,
                     AvailableTimeSlots = d.AvailableTimeSlots
                 })
                 .ToListAsync();
         }
 
-        public async Task<DoctorDto> GetDoctorByIdAsync(int id)
+        public async Task<DoctorDto> AddDoctorAsync(DoctorDto doctorDto)
         {
-            var doctor = await _context.Doctors.FindAsync(id);
-            if (doctor == null)
-                throw new KeyNotFoundException("Doctor not found");
-
-            return new DoctorDto
+            var doctor = new Doctor
             {
-                Id = doctor.Id,
-                Name = doctor.Name,
-                Specialty = doctor.Specialty,
-                ImageUrl = doctor.Email,
-                AvailableTimeSlots = doctor.AvailableTimeSlots
+                Name = doctorDto.Name,
+                Specialty = doctorDto.Specialty,
+                Title = doctorDto.Title,
+                ImageUrl = doctorDto.ImageUrl,
+                AvailableTimeSlots = doctorDto.AvailableTimeSlots
             };
+
+            _context.Doctors.Add(doctor);
+            await _context.SaveChangesAsync();
+
+            doctorDto.Id = doctor.Id;
+            return doctorDto;
         }
 
         public async Task<List<string>> GetAvailableTimeSlotsAsync(int doctorId, DateTime date)
@@ -60,23 +63,6 @@ namespace DentalClinicBackend.Services
             return doctor.AvailableTimeSlots
                 .Except(bookedSlots)
                 .ToList();
-        }
-
-        public async Task<DoctorDto> AddDoctorAsync(DoctorDto doctorDto)
-        {
-            var doctor = new Doctor
-            {
-                Name = doctorDto.Name,
-                Specialty = doctorDto.Specialty,
-                Email = doctorDto.ImageUrl,
-                AvailableTimeSlots = doctorDto.AvailableTimeSlots
-            };
-
-            _context.Doctors.Add(doctor);
-            await _context.SaveChangesAsync();
-
-            doctorDto.Id = doctor.Id;
-            return doctorDto;
         }
 
         public async Task<bool> UpdateDoctorScheduleAsync(int doctorId, List<string> timeSlots)

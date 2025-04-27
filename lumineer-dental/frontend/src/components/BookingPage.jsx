@@ -520,24 +520,25 @@ const BookingPage = () => {
               Available Times
             </Typography>
             <Box display="flex" flexWrap="wrap" justifyContent="center" gap={2}>
-              {['09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'].map((time) => (
-                <Button
-                  key={time}
-                  variant={selectedTime === time ? 'contained' : 'outlined'}
-                  onClick={() => setSelectedTime(time)}
-                  sx={{
-                    margin: '5px',
-                    backgroundColor: selectedTime === time ? '#8B4513' : 'white',
-                    color: selectedTime === time ? 'white' : '#8B4513',
-                    borderColor: '#8B4513',
-                    '&:hover': {
-                      backgroundColor: selectedTime === time ? '#A0522D' : '#F5F5F5',
-                      color: selectedTime === time ? 'white' : '#8B4513',
-                    },
-                  }}
-                >
-                  {time}
-                </Button>
+  {['09:00 AM', '10:00 AM', '11:00 AM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM'].map((time) => (
+    <Button
+      key={time}
+      variant={selectedTime === time ? 'contained' : 'outlined'}
+      onClick={() => setSelectedTime(time)}
+      disabled={!selectedDate} // Disable time selection if no date is selected
+      sx={{
+        margin: '5px',
+        backgroundColor: selectedTime === time ? '#8B4513' : 'white',
+        color: selectedTime === time ? 'white' : '#8B4513',
+        borderColor: '#8B4513',
+        '&:hover': {
+          backgroundColor: selectedTime === time ? '#A0522D' : '#F5F5F5',
+          color: selectedTime === time ? 'white' : '#8B4513',
+        },
+      }}
+    >
+      {time}
+    </Button>
               ))}
             </Box>
           </Box>

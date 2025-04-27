@@ -129,7 +129,7 @@ const LoginRegister = () => {
     gender: "",
     dob: "",
     password: "",
-    allergies: "",
+   allergies: "",
     medications: "",
     dentalHistory: "",
     surgeries: "",

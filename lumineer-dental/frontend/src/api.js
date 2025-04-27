@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5133/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5133';
 
 export const apiRequest = async (endpoint, method = 'GET', data = null, auth = false) => {
     const options = {
@@ -121,7 +121,7 @@ export const registerUser = async (userData) => {
 
 // Fetch Profile Function
 export const getProfile = async () => {
-    return await apiRequest("auth/profile", "GET", null, true);
+    return await apiRequest("api/auth/profile", "GET", null, true);
 };
 
 // Fetch Patient History Function
@@ -135,13 +135,23 @@ export const createAppointment = async (appointmentData) => {
         const userData = JSON.parse(localStorage.getItem('user'));
         
         // Format the date properly
-        const formattedDate = new Date(appointmentData.date).toISOString().split('T')[0];
+        const formattedDate = appointmentData.date
+            ? new Date(appointmentData.date).toISOString().split('T')[0]
+            : null;
+
+        if (!formattedDate) {
+            throw new Error("Invalid appointment date provided.");
+        }
+
+        if (!appointmentData.doctorId) {
+            throw new Error("No doctor selected. Please select a doctor.");
+        }
         
         // Enhanced appointment data structure
         const formattedData = {
             userId: userData.user.Id,
-            doctorId: appointmentData.doctorId, // Now getting from selected doctor
-            serviceId: appointmentData.serviceId, // Added service ID
+            doctorId: appointmentData.doctorId,
+            serviceId: appointmentData.serviceId,
             appointmentDate: formattedDate,
             appointmentTime: appointmentData.time,
             serviceType: appointmentData.service,
@@ -163,7 +173,7 @@ export const createAppointment = async (appointmentData) => {
         return response;
     } catch (error) {
         console.error("Appointment creation error details:", error);
-        throw new Error("Failed to create appointment. Please try again.");
+        throw new Error(error.message || "Failed to create appointment. Please try again.");
     }
 };
 
