@@ -335,7 +335,7 @@ const LoginRegister = () => {
     };
   }, [navigate]);
 
-  // Update the return JSX for login form
+  
   const renderLoginForm = () => (
     <>
       <form onSubmit={loginFormik.handleSubmit}>

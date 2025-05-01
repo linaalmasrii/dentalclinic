@@ -10,11 +10,11 @@ namespace DentalClinicBackend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class DoctorController : ControllerBase
+    public class DoctorsController : ControllerBase
     {
         private readonly IDoctorService _doctorService;
 
-        public DoctorController(IDoctorService doctorService)
+        public DoctorsController(IDoctorService doctorService)
         {
             _doctorService = doctorService;
         }

@@ -125,8 +125,8 @@ export const getProfile = async () => {
 };
 
 // Fetch Patient History Function
-export const getPatientHistory = async (email) => {
-    return await apiRequest(`patient-history/${email}`, "GET", null, true);
+export const getPatientHistory = async (userId) => {
+    return await apiRequest(`api/user/${userId}/history`, "GET", null, true);
 };
 
 // Create Appointment Function
@@ -152,16 +152,17 @@ export const createAppointment = async (appointmentData) => {
             userId: userData.user.Id,
             doctorId: appointmentData.doctorId,
             serviceId: appointmentData.serviceId,
-            appointmentDate: formattedDate,
-            appointmentTime: appointmentData.time,
+            AppointmentDate: appointmentData.date instanceof Date
+                ? appointmentData.date.toISOString()
+                : appointmentData.date,
+            TimeSlot: appointmentData.appointmentTime,
             serviceType: appointmentData.service,
             status: "Scheduled"
         };
 
         console.log('Submitting appointment data:', formattedData);
 
-        const response = await apiRequest("appointments", "POST", formattedData, true);
-        
+        const response = await apiRequest("api/appointment", "POST", formattedData, true);        
         if (response.success) {
             console.log('Appointment created successfully:', response);
             return {
@@ -179,13 +180,13 @@ export const createAppointment = async (appointmentData) => {
 
 // Fetch Doctors Function
 export const getDoctors = async () => {
-    return await apiRequest("doctors", "GET", null, true);
+    return await apiRequest("api/doctors", "GET", null, true);
 };
 
 //  appointment history
 export const getAppointmentHistory = async (userId) => {
     try {
-        const response = await apiRequest(`appointments/history/${userId}`, "GET", null, true);
+        const response = await apiRequest(`api/appointment/history/${userId}`, "GET", null, true);
         return response;
     } catch (error) {
         console.error("Failed to fetch appointment history:", error);

@@ -45,10 +45,10 @@ namespace DentalClinicBackend.Services
                 ServiceType = appointmentDto.ServiceType,
                 Status = "Pending"
             };
-
+           // to save to database 
             _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
-
+// return the appointment id 
             appointmentDto.Id = appointment.Id;
             return appointmentDto;
         }

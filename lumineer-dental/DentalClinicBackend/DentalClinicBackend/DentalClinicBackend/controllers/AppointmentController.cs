@@ -66,12 +66,9 @@ namespace DentalClinicBackend.Controllers
             try
             {
                 var appointments = await _appointmentService.GetUserAppointmentsAsync(int.Parse(userId));
-                
-                // Sort appointments by date
                 appointments = appointments.OrderByDescending(a => a.AppointmentDate)
-                                        .ThenBy(a => a.TimeSlot)
-                                        .ToList();
-                
+                                           .ThenBy(a => a.TimeSlot)
+                                           .ToList();
                 return Ok(appointments);
             }
             catch (Exception ex)

@@ -82,7 +82,7 @@ const LoginS = () => {
 
     fetchUserData();
 
-    // Keep the reviews part as is
+    // reviews part 
     setReviews([
       {
         userName: "Sarah Smith",
@@ -377,9 +377,9 @@ const LoginS = () => {
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
               Everything you expect and then some. Cleanings, fillings, and x-rays are just the beginning.
             </Typography>
-            <Link href="#general" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
-              ABOUT GENERAL DENTISTRY
-            </Link>
+           
+            GENERAL DENTISTRY
+          
           </Box>
 
           {/* Cosmetic Dentistry */}
@@ -398,9 +398,9 @@ const LoginS = () => {
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
               Discover your "wow!" factor. Invisalign, veneers, and in-office or take-home teeth whitening.
             </Typography>
-            <Link href="#cosmetic" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
-              ABOUT COSMETIC DENTISTRY
-            </Link>
+           
+            COSMETIC DENTISTRY
+           
           </Box>
 
           {/* Surgical Dentistry */}
@@ -419,9 +419,9 @@ const LoginS = () => {
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
               We can fix anything. Our dentists repair damaged or lost teeth with cutting-edge implants and more.
             </Typography>
-            <Link href="#surgical" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
-              ABOUT ORAL SURGERY
-            </Link>
+            
+             ORAL SURGERY
+
           </Box>
 
           {/* Pediatric Dentistry */}
@@ -440,9 +440,9 @@ const LoginS = () => {
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
               Specialized dental care for children, ensuring a positive experience from a young age.
             </Typography>
-            <Link href="#pediatric" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
-              ABOUT PEDIATRIC DENTISTRY
-            </Link>
+           
+               PEDIATRIC DENTISTRY
+            
           </Box>
           {/* Orthodontics */}
           <Box
@@ -460,9 +460,9 @@ const LoginS = () => {
             <Typography variant="body1" sx={{ marginBottom: '20px' }}>
               Straighten your smile with our comprehensive orthodontic treatments, including braces and clear aligners.
             </Typography>
-            <Link href="#orthodontics" underline="none" sx={{ marginTop: '10px', display: 'block', color: '#5E2C04', fontWeight: 'bold', textDecoration: 'underline' }}>
-              ABOUT ORTHODONTICS
-            </Link>
+           
+              ORTHODONTICS
+          
           </Box>
         </Box>
       </Box>

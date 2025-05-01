@@ -49,6 +49,9 @@ namespace DentalClinicBackend.Services
 
         public async Task<List<string>> GetAvailableTimeSlotsAsync(int doctorId, DateTime date)
         {
+            if (date.Kind == DateTimeKind.Unspecified)
+                date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
+
             var doctor = await _context.Doctors
                 .Include(d => d.Appointments.Where(a => a.AppointmentDate.Date == date.Date))
                 .FirstOrDefaultAsync(d => d.Id == doctorId);

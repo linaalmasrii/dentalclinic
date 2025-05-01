@@ -5,10 +5,11 @@ import { styled } from '@mui/system';
 import DatePicker from 'react-datepicker'; 
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-import { createAppointment } from '../api';
+import { getDoctors, createAppointment } from '../api';
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-
+console.log("BookingPage mounted");
 
 const Header = styled(Box)(({ theme }) => ({
   position: 'fixed',
@@ -167,6 +168,10 @@ const BookingPage = () => {
   const [error, setError] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const navigate = useNavigate();
+  const [doctors, setDoctors] = useState([]);
+  const [doctorsByService, setDoctorsByService] = useState({});
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [disabledDates, setDisabledDates] = useState([]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -184,6 +189,70 @@ const BookingPage = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
+  useEffect(() => {
+    console.log("Fetching doctors...");
+    const fetchDoctors = async () => {
+      setLoadingDoctors(true);
+      try {
+        const doctorsList = await getDoctors();
+        setDoctors(doctorsList);
+
+        // Group doctors by their Specialty
+        const grouped = {};
+        doctorsList.forEach(doc => {
+          if (!grouped[doc.Specialty]) grouped[doc.Specialty] = [];
+          grouped[doc.Specialty].push(doc);
+        });
+        setDoctorsByService(grouped);
+      } catch (err) {
+        alert('Failed to load doctors');
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+    fetchDoctors();
+  }, []);
+
+  useEffect(() => {
+    console.log("useEffect for disabled dates, selectedDoctor:", selectedDoctor);
+    if (!selectedDoctor) return;
+
+    const fetchDisabledDates = async () => {
+      const today = new Date();
+      const daysToCheck = 30; // or any range you want
+      const unavailableDates = [];
+
+      for (let i = 0; i < daysToCheck; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dateString = date.toISOString().split('T')[0];
+
+        // Fetch available slots for this doctor and date
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5133'}/api/doctors/${selectedDoctor.Id}/available-slots?date=${dateString}`,
+            {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              }
+            }
+          );
+          const slots = await response.json();
+          console.log(`Date: ${dateString}, Slots:`, slots);
+          if (!slots || slots.length === 0) {
+            unavailableDates.push(new Date(date));
+          }
+        } catch (err) {
+          console.error(`Error fetching slots for ${dateString}:`, err);
+        }
+      }
+      console.log('Unavailable Dates:', unavailableDates);
+      setDisabledDates(unavailableDates);
+    };
+
+    fetchDisabledDates();
+  }, [selectedDoctor]);
 
   const handleNext = () => {
     if (step === 1) {
@@ -219,6 +288,7 @@ const BookingPage = () => {
   const handleDoctorSelection = (doctor) => {
     setSelectedDoctor(doctor);
     setError(false);
+    console.log("Doctor selected:", doctor);
   };
 
   const handleNextToStep3 = () => {
@@ -239,38 +309,34 @@ const BookingPage = () => {
 
   const handleConfirmAppointment = async () => {
     try {
-        if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService) {
-            alert("Please select all required fields");
-            return;
-        }
+      if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService) {
+        alert("Please select all required fields");
+        return;
+      }
 
-        setLoading(true); // Add loading state
-        
-        const appointmentData = {
-            doctorId: selectedDoctor.id, // Make sure your doctor objects have IDs
-            serviceId: getServiceId(selectedService), // Add a function to map service names to IDs
-            appointmentDate: selectedDate,
-            appointmentTime: selectedTime,
-            service: selectedService,
-            doctorName: selectedDoctor.name
-        };
+      setLoading(true);
 
-        console.log('Submitting appointment:', appointmentData);
-        
-        const response = await createAppointment(appointmentData);
-        
-        if (response.message) {
-            // Show success dialog
-            setSuccessDialogOpen(true);
-            setTimeout(() => {
-                navigate('/appointment-history');
-            }, 3000);
-        }
+      const appointmentData = {
+        doctorId: selectedDoctor.Id,
+        serviceId: getServiceId(selectedService),
+        date: selectedDate,
+        appointmentTime: selectedTime,
+        service: selectedService,
+        doctorName: selectedDoctor.Name
+      };
+
+      const response = await createAppointment(appointmentData);
+
+      if (response.message) {
+        setSuccessDialogOpen(true);
+        setTimeout(() => {
+          navigate('/patient-history');
+        }, 3000);
+      }
     } catch (error) {
-        console.error('Booking error:', error);
-        alert(error.message || "Failed to book appointment");
+      alert(error.message || "Failed to book appointment");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -419,7 +485,7 @@ const BookingPage = () => {
         <Box display="flex" flexWrap="wrap" justifyContent="space-between" marginY="20px">
           {doctorsByService[selectedService]?.map((provider) => (
             <Button
-              key={provider.name}
+              key={provider.Id}
               variant="outlined"
               sx={{
                 display: 'flex',
@@ -427,8 +493,8 @@ const BookingPage = () => {
                 alignItems: 'center',
                 margin: '10px',
                 borderColor: '#8B4513',
-                color: selectedDoctor === provider ? 'white' : '#8B4513',
-                backgroundColor: selectedDoctor === provider ? '#8B4513' : 'transparent',
+                color: selectedDoctor?.Id === provider.Id ? 'white' : '#8B4513',
+                backgroundColor: selectedDoctor?.Id === provider.Id ? '#8B4513' : 'transparent',
                 width: '45%',
                 textTransform: 'none',
                 '&:hover': {
@@ -436,11 +502,11 @@ const BookingPage = () => {
                   color: 'white',
                 },
               }}
-              onClick={() => handleDoctorSelection(provider)}
+              onClick={() => setSelectedDoctor(provider)}
             >
               <img
-                src={provider.imgSrc}
-                alt={provider.name}
+                src={provider.ImageUrl}
+                alt={provider.Name}
                 style={{
                   borderRadius: '50%',
                   width: '60px',
@@ -449,9 +515,9 @@ const BookingPage = () => {
                 }}
               />
               <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                {provider.name}
+                {provider.Name}
               </Typography>
-              <Typography variant="body2">{provider.title}</Typography>
+              <Typography variant="body2">{provider.Title}</Typography>
             </Button>
           ))}
         </Box>
@@ -512,6 +578,11 @@ const BookingPage = () => {
               onChange={setSelectedDate}
               value={selectedDate}
               minDate={new Date()}
+              tileDisabled={({ date, view }) =>
+                view === 'month' && disabledDates.some(
+                  d => d.toDateString() === date.toDateString()
+                )
+              }
             />
           </StyledCalendarContainer>
 
@@ -525,7 +596,7 @@ const BookingPage = () => {
       key={time}
       variant={selectedTime === time ? 'contained' : 'outlined'}
       onClick={() => setSelectedTime(time)}
-      disabled={!selectedDate} // Disable time selection if no date is selected
+      disabled={!selectedDate} 
       sx={{
         margin: '5px',
         backgroundColor: selectedTime === time ? '#8B4513' : 'white',
@@ -580,6 +651,7 @@ const BookingPage = () => {
     </Card>
   );
 
+  
   const SuccessDialog = () => (
     <Dialog
         open={successDialogOpen}
@@ -595,14 +667,14 @@ const BookingPage = () => {
             <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1">Appointment Details:</Typography>
                 <Typography>Service: {selectedService}</Typography>
-                <Typography>Doctor: {selectedDoctor?.name}</Typography>
+                <Typography>Doctor: {selectedDoctor?.Name}</Typography>
                 <Typography>Date: {selectedDate?.toLocaleDateString()}</Typography>
                 <Typography>Time: {selectedTime}</Typography>
             </Box>
         </DialogContent>
         <DialogActions>
             <Button 
-                onClick={() => navigate('/PatienHistory')}
+                onClick={() => navigate('/patient-history')}
                 sx={{ 
                     backgroundColor: '#8B4513',
                     color: 'white',
@@ -620,7 +692,11 @@ const BookingPage = () => {
   return (
     <BackgroundContainer>
       <Header>
-        <Typography variant="h5" color="#5E2C04">Lumineer Dental - Appointment Booking</Typography>
+      <Link to="/LoginS" style={{ textDecoration: 'none' }}>
+  <Typography variant="h5" color="#5E2C04">
+    Lumineer Dental - Appointment Booking
+  </Typography>
+</Link>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <img
             src="src/assets/newicon.ico"

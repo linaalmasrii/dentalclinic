@@ -44,7 +44,7 @@ builder.Services.AddCors(options =>
 var secretKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(secretKey))
 {
-    throw new ArgumentException("⚠️ ERROR: JWT secret key is missing in appsettings.json.");
+    throw new ArgumentException("ERROR: JWT secret key is missing in appsettings.json.");
 }
 var key = Encoding.UTF8.GetBytes(secretKey);
 
@@ -162,7 +162,7 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 app.MapControllers();
 
-// Add this after app.Build(); but before app.Run();
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

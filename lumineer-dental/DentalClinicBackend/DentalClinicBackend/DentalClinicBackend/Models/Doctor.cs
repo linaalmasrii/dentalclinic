@@ -25,37 +25,20 @@ namespace DentalClinicBackend.Models
         [MaxLength(255)]
         public string ImageUrl { get; set; } = string.Empty;
 
-        public int ServiceId { get; set; } 
+        // Removed ServiceId and added a collection of services
+        //public List<DoctorService> DoctorServices { get; set; } = new List<DoctorService>();
 
-        // Define a Value Converter for List<string>
-        private static readonly ValueConverter<List<string>, string> _converter =
-            new ValueConverter<List<string>, string>(
-                v => string.Join(',', v),  // Convert List to a single string
-                v => v.Split(',', System.StringSplitOptions.None).ToList() // Convert string back to List
-            );
-
-        // Define a Value Comparer for List<string>
-        private static readonly ValueComparer<List<string>> _comparer =
-            new ValueComparer<List<string>>(
-                (c1, c2) => (c1 ?? new List<string>()).SequenceEqual(c2 ?? new List<string>()),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),  // Hashing logic
-                c => c.ToList()
-            );
-
+        
         //  Apply Value Converter & Comparer to AvailableTimeSlots
         [Required]
         public List<string> AvailableTimeSlots { get; set; } = new();
 
         public List<Appointment> Appointments { get; set; } = new();
 
-        // Configure method to apply the value converter and comparer
         public static void Configure(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<Doctor>()
-                .Property(d => d.AvailableTimeSlots)
-                .HasConversion(_converter) 
-                .Metadata.SetValueComparer(_comparer); 
-        }
+{
+    // No conversion needed for AvailableTimeSlots; EF Core maps List<string> to text[] natively in PostgreSQL.
+}
 
         // Constructor
         public Doctor()

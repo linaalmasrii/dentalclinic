@@ -15,9 +15,19 @@ public class ServicesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetServices()
-    {
-        var services = await _context.Services.ToListAsync();
-        return Ok(services);
-    }
+public async Task<IActionResult> GetServices()
+{
+    var services = await _context.Services
+
+        .Select(s => new ServiceDto
+        {
+            Id = s.Id,
+            Name = s.Name,
+            Description = s.Description,
+            
+        })
+        .ToListAsync();
+
+    return Ok(services);
+}
 }

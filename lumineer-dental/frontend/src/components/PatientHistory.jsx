@@ -1,30 +1,43 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, CircularProgress, Paper, Grid } from "@mui/material";
-import { getPatientHistory, getAppointmentHistory } from "../api";
+import { getPatientHistory, getAppointmentHistory, getDoctors } from "../api";
 import { useNavigate } from "react-router-dom";
 
 const PatientHistory = () => {
   const [patientData, setPatientData] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [doctors, setDoctors] = useState([]);
+  const [doctorIdToName, setDoctorIdToName] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       const user = JSON.parse(localStorage.getItem("user"));
-      if (!user) {
+      console.log("Loaded user from localStorage:", user);
+
+      const userId = user?.user?.Id || user?.Id;
+      const userEmail = user?.user?.Email || user?.Email;
+
+      if (!userId) {
         alert("No user logged in");
         return;
       }
 
       try {
-        const [patientData, appointmentsData] = await Promise.all([
-          getPatientHistory(user.email),
-          getAppointmentHistory(user.user.Id)
+        const [patientData, appointmentsData, doctorsList] = await Promise.all([
+          getPatientHistory(userId),
+          getAppointmentHistory(userId),
+          getDoctors()
         ]);
-        
+        const doctorIdToName = {};
+        doctorsList.forEach(doc => {
+          doctorIdToName[doc.Id] = doc.Name;
+        });
         setPatientData(patientData);
         setAppointments(appointmentsData);
+        setDoctors(doctorsList);
+        setDoctorIdToName(doctorIdToName);
       } catch (error) {
         alert(error.message || "Failed to fetch data");
       } finally {
@@ -84,68 +97,9 @@ const PatientHistory = () => {
         </Box>
       ) : patientData ? (
         <Grid container spacing={3} sx={{ maxWidth: '1200px', margin: 'auto', padding: '0 20px' }}>
-          {/* Personal Information */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '5px 5px 15px rgba(94, 44, 4, 0.2)',
-              height: '100%',
-              backgroundColor: 'white',
-            }}>
-              <Typography variant="h5" sx={{ 
-                color: '#5E2C04',
-                marginBottom: '20px',
-                fontFamily: "'Playfair Display', serif",
-              }}>
-                Personal Information
-              </Typography>
-              <Box sx={{ display: 'grid', gap: '15px' }}>
-                <Typography variant="body1">
-                  <strong>Full Name:</strong> {patientData.firstName} {patientData.lastName}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Email:</strong> {patientData.email}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Phone:</strong> {patientData.phoneNumber}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Gender:</strong> {patientData.gender || "Not specified"}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Date of Birth:</strong> {patientData.dateOfBirth || "Not specified"}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
+          
 
-          {/* Medical Information */}
-          <Grid item xs={12} md={6}>
-            <Paper sx={{
-              padding: '30px',
-              borderRadius: '12px',
-              boxShadow: '5px 5px 15px rgba(94, 44, 4, 0.2)',
-              height: '100%',
-              backgroundColor: 'white',
-            }}>
-              <Typography variant="h5" sx={{ 
-                color: '#5E2C04',
-                marginBottom: '20px',
-                fontFamily: "'Playfair Display', serif",
-              }}>
-                Medical Information
-              </Typography>
-              <Box sx={{ display: 'grid', gap: '15px' }}>
-                <Typography variant="body1">
-                  <strong>Allergies:</strong> {patientData.allergies || "None"}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Medications:</strong> {patientData.medications || "None"}
-                </Typography>
-              </Box>
-            </Paper>
-          </Grid>
+         
 
           {/* Dental History */}
           <Grid item xs={12}>
@@ -203,18 +157,18 @@ const PatientHistory = () => {
                       <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} md={3}>
                           <Typography variant="body1">
-                            <strong>Service:</strong> {appointment.service}
+                            <strong>Service:</strong> {appointment.ServiceType}
                           </Typography>
                           <Typography variant="body1">
-                            <strong>Doctor:</strong> Dr. {appointment.doctorName}
+                            <strong>Doctor:</strong> {doctorIdToName[appointment.DoctorId] || "Dr."}
                           </Typography>
                         </Grid>
                         <Grid item xs={12} md={3}>
                           <Typography variant="body1">
-                            <strong>Date:</strong> {new Date(appointment.appointmentDate).toLocaleDateString()}
+                            <strong>Date:</strong> {appointment.AppointmentDate ? new Date(appointment.AppointmentDate).toLocaleDateString() : "-"}
                           </Typography>
                           <Typography variant="body1">
-                            <strong>Time:</strong> {appointment.appointmentTime}
+                            <strong>Time:</strong> {appointment.TimeSlot || "-"}
                           </Typography>
                         </Grid>
                         <Grid item xs={12} md={3}>
@@ -222,10 +176,10 @@ const PatientHistory = () => {
                             padding: '5px 10px',
                             borderRadius: '15px',
                             display: 'inline-block',
-                            backgroundColor: getStatusColor(appointment.status),
+                            backgroundColor: getStatusColor(appointment.Status),
                             color: 'white'
                           }}>
-                            {appointment.status}
+                            {appointment.Status}
                           </Box>
                         </Grid>
                       </Grid>
